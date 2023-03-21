@@ -8,8 +8,8 @@ public class Enemy : MonoBehaviour
     private const string END_POINT_TAG = "EndPoint";
     protected EnemyType type = EnemyType.Goblin;
 
-    protected bool isInTheEnd = false;
-    public bool IsInTheEnd { get => isInTheEnd; }
+    protected bool reachedEnd = false;
+    public bool ReachedEnd { get => reachedEnd; private set => SetReachedEnd(value); }
 
     private bool isDead;
     virtual public bool IsDead { get => isDead; set => SetIsDead(value); }
@@ -19,6 +19,9 @@ public class Enemy : MonoBehaviour
 
     [SerializeField] protected float maxHealth = 20f;
     virtual public float MaxHealth { get => maxHealth; private set => maxHealth = value; }
+
+    [SerializeField]protected int damage = 1;
+    virtual public int Damage { get => damage; private set => damage = value; }
 
     protected NavMeshAgent agent;
     virtual public NavMeshAgent Agent { get => agent = agent != null ? agent : GetComponentInChildren<NavMeshAgent>(); }
@@ -39,16 +42,22 @@ public class Enemy : MonoBehaviour
 
     virtual public void StartMoving()
     {
-        EnemyBody.Collider.enabled = true;
-        Agent.isStopped = false;
-        Agent.destination = Target.transform.position + Vector3.up * transform.position.y;
+        ResetEnemy();     
         StartCoroutine(CheckNavMeshState());
+    }
+
+    virtual public void ResetEnemy()
+    {
+        ReachedEnd = false;
+        IsDead = false;
+        CurrentHealth = MaxHealth;
+        Agent.destination = Target.transform.position + Vector3.up * transform.position.y;
     }
 
     virtual public void TakeDamage(float damage)
     {
         CurrentHealth -= damage;
-        CheckDeath();  
+        CheckDeath();
     }
 
     virtual protected void Start()
@@ -65,24 +74,23 @@ public class Enemy : MonoBehaviour
     virtual protected void OnBodyCollision(Collider other)
     {
         if (other.CompareTag(END_POINT_TAG))
-        {       
-            isInTheEnd = true;
-            gameObject.layer = LayerMask.NameToLayer("Default");
-            StartCoroutine(DestroySmoothly());
+        {
+            ReachedEnd = true;
+            IsDead = true;
         }
     }
 
     virtual protected void CheckDeath()
     {
         if (CurrentHealth > 0f) return;
-        StartCoroutine(DestroySmoothly());
+        IsDead = true;
     }
 
     virtual protected IEnumerator CheckNavMeshState()
     {
         while (true)
         {
-            if(Agent.pathStatus == NavMeshPathStatus.PathPartial)
+            if (Agent.pathStatus == NavMeshPathStatus.PathPartial)
             {
                 OnPathBlocked?.Invoke(this);
             }
@@ -92,22 +100,17 @@ public class Enemy : MonoBehaviour
 
     virtual protected IEnumerator DestroySmoothly()
     {
-        ClearProjectiles();
-        IsDead = true;
-        EnemyBody.Collider.enabled = false;
         float dissolveTime = 0f;
-        Agent.isStopped = true;
-        Agent.velocity = Vector3.zero;
+        yield return new WaitForSeconds(2f);
+        ClearProjectiles();
 
         while (dissolveTime <= 1f)
         {
             dissolveTime += Time.deltaTime;
             Renderer.material.SetFloat("_AlphaClipScale", dissolveTime);
-            yield return null;      
+            yield return null;
         }
-
-        Destroy(gameObject);
-        OnReachEnd?.Invoke(this);
+        Destroy(gameObject);       
     }
 
     virtual protected void OnDestroy()
@@ -121,9 +124,7 @@ public class Enemy : MonoBehaviour
         if (!projectiles.Any()) return;
         for (int i = 0; i < projectiles.Length; i++)
         {
-            projectiles[i].transform.SetParent(projectiles[i].OriginalParent);
-            projectiles[i].enabled = true;
-            projectiles[i].gameObject.SetActive(false);
+            projectiles[i].ReadyForBool();        
         }
     }
 
@@ -131,6 +132,22 @@ public class Enemy : MonoBehaviour
     {
         if (isDead == value) return;
         isDead = value;
-        OnDeath?.Invoke(this);
+        EnemyBody.gameObject.layer = isDead ? LayerMask.NameToLayer("PassThrough") : LayerMask.NameToLayer("Enemy");
+        Agent.isStopped = isDead;
+        Agent.velocity = isDead ? Vector3.zero : Agent.velocity;
+        EnemyBody.Rigidbody.constraints = isDead ? RigidbodyConstraints.None : RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezeRotationX;
+
+        if (isDead)
+        {
+            StartCoroutine(DestroySmoothly());
+            OnDeath?.Invoke(this);
+        }
+    }
+
+    virtual protected void SetReachedEnd(bool value)
+    {
+        if (reachedEnd == value) return;
+        reachedEnd = value;
+        if (reachedEnd) OnReachEnd?.Invoke(this);
     }
 }

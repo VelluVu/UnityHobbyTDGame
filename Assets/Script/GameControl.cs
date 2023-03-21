@@ -6,14 +6,25 @@ public class GameControl : MonoBehaviour
 
     public GameStyle gameStyle = GameStyle.Normal;
     public int nextWave = 0;
-    public int currentWave = 0;
+    public int spawnWave = 0;
+
+    [SerializeField] private int playerLife = 100;
+    public int PlayerLife { get => playerLife; private set => SetPlayerLife(value); }
+
+    public delegate void GameDelegate();
+    public event GameDelegate OnPlayerLose;
+
+    private void PlayerLose()
+    {
+        Debug.Log("Player Lose");
+        OnPlayerLose?.Invoke();
+    }
 
     public void Ready()
     {
-        //NEED STATE OF WAVES STORED IN SPAWNERS CONTROL
-
-        SpawnersControl.Instance.SpawnWithSelectedSpawners(currentWave);
-        nextWave = currentWave + 1;
+        spawnWave = nextWave;
+        SpawnersControl.Instance.SpawnWithSelectedSpawners(spawnWave);
+        nextWave = spawnWave + 1;
     }
 
     private void Awake()
@@ -30,24 +41,32 @@ public class GameControl : MonoBehaviour
     {
         SpawnersControl.Instance.OnWaveComplete += OnWaveComplete;
         SpawnersControl.Instance.OnLevelComplete += OnLevelComplete;
+        SpawnersControl.Instance.OnEnemyReachEnd += OnEnemyReachedEnd;
     }
 
-    private void OnLevelComplete()
+    private void OnEnemyReachedEnd(WaveState waveState, Enemy enemy)
+    {
+        PlayerLife -= enemy.Damage;
+    }
+
+    private void OnLevelComplete(WaveState waveState)
     {
         Debug.Log("Level Complete");
         
     }
 
-    private void OnWaveComplete()
+    private void OnWaveComplete(WaveState waveState)
     {
         Debug.Log("Wave Complete");
-        currentWave = nextWave;
+        spawnWave = nextWave;
     }
 
-}
-
-public enum GameStyle
-{
-    Normal,
-    Endless,
+    private void SetPlayerLife(int value)
+    {
+        playerLife = value;
+        if (playerLife <= 0)
+        {
+            PlayerLose();
+        }
+    }
 }

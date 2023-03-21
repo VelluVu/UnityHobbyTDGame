@@ -147,10 +147,10 @@ public abstract class Tower : MonoBehaviour
     virtual protected Enemy SearchEnemyWithSearchMethod(TargetSearchDelegate searchDelegate)
     {
         Enemy firstEnemy = null;
-        if (!SpawnersControl.Instance.allEnemies.Any()) return null;
-        for (int i = 0; i < SpawnersControl.Instance.allEnemies.Count; i++)
+        if (!SpawnersControl.Instance.enemiesInLevel.Any()) return null;
+        for (int i = 0; i < SpawnersControl.Instance.enemiesInLevel.Count; i++)
         {
-            var currentEnemy = SpawnersControl.Instance.allEnemies[i];
+            var currentEnemy = SpawnersControl.Instance.enemiesInLevel[i];
             if (currentEnemy == null) continue;
             if (firstEnemy == null)
             {

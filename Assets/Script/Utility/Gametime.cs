@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using UnityEngine;
 
@@ -49,14 +48,16 @@ public class Gametime : MonoBehaviour
     {
         if(minutes == value) return;
         minutes = value;
-        if(value >= 60) OnHoursChange?.Invoke();
+        OnMinutesChange?.Invoke();
     }
 
     private static void SetHours(int value)
     {
         if(hours == value) return;
         hours = value;
-        if(value >= 24)
+        OnHoursChange?.Invoke();
+
+        if (value >= 24)
         {
             Hours = 0;
             Days++;

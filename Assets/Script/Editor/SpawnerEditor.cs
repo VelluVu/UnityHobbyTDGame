@@ -14,7 +14,7 @@ public class SpawnerEditor : Editor
 
         if (GUILayout.Button(SPAWN_BUTTON_LABEL))
         {
-            spawner.SpawnSet(GameControl.Instance.nextWave);
+            spawner.SpawnSet();
         }
 
         GUILayout.Space(10f);

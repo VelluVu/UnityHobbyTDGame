@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -7,13 +6,14 @@ public class SpawnersControl : MonoBehaviour
 {
     public static SpawnersControl Instance { get; private set; }
 
-    public List<Enemy> allEnemies = new List<Enemy>();
-    public int AliveEnemiesCount { get => allEnemies.Count; }
-    public int SpawnsInWave { get => GetSpawnsInWave(); }
-    public int EnemiesKilledInWave { get; private set; }
-    public int SpawnedEnemiesCount { get; private set; }
-    public int EnemiesKilledCount { get; private set; }
-    public int SpawnsInLevel { get; private set; }
+    public List<WaveState> waveStates = new List<WaveState>();
+
+    public List<Enemy> enemiesInLevel = new List<Enemy>();
+    public int AmountOfAliveEnemiesInLevel { get => enemiesInLevel.Count; }
+    public int AmountOfSpawnsInLevel { get => GetAmountOfSpawnsInLevel(); }
+    public int AmountOfEnemiesDestroyedInLevel { get; private set; }
+    public int AmountOFEnemiesReachedEndInLevel { get; private set; }
+    public int AmountOfEnemiesSpawnedInLevel { get; private set; }
 
     private EnemyHolder enemyHolder;
     public EnemyHolder EnemyHolder { get => enemyHolder = enemyHolder != null ? enemyHolder : FindObjectOfType<EnemyHolder>(); }
@@ -23,11 +23,14 @@ public class SpawnersControl : MonoBehaviour
 
     public List<Spawner> selectedSpawners = new List<Spawner>();
 
-    public delegate void SpawnersControlDelegate();
-    public event SpawnersControlDelegate OnEnemyKill;
+    public delegate void SpawnersControlDelegate(WaveState waveState, Enemy enemy);
+    public event SpawnersControlDelegate OnEnemyRemoved;
+    public event SpawnersControlDelegate OnEnemyReachEnd;
     public event SpawnersControlDelegate OnEnemySpawn;
-    public event SpawnersControlDelegate OnWaveComplete;
-    public event SpawnersControlDelegate OnLevelComplete;
+
+    public delegate void SpawnersControlDelegateTwo(WaveState waveState);
+    public event SpawnersControlDelegateTwo OnWaveComplete;
+    public event SpawnersControlDelegateTwo OnLevelComplete;
 
     private void Awake()
     {
@@ -45,47 +48,60 @@ public class SpawnersControl : MonoBehaviour
     {
         spawners = GetSpawns();
         if (!spawners.Any()) return;
-        spawners.ForEach(o => AddSpawnListeners(o));
-        SpawnedEnemiesCount = 0;
-        EnemiesKilledCount = 0;
-        CalculateTotalSpawnsInLevel();
-    }
-
-    private void CalculateTotalSpawnsInLevel()
-    {
-        SpawnsInLevel = 0;
-        Spawners.ForEach(o => SpawnsInLevel += o.TotalSpawns);
+        spawners.ForEach(o => AddSpawnListeners(o));  
     }
 
     public void AddSpawnListeners(Spawner spawn)
     {
         spawn.OnNewEnemyAdd += OnEnemyAdd;
         spawn.OnEnemyRemove += OnEnemyRemove;
+        spawn.OnEnemyReachedEnd += OnEnemyReachedEnd;
     }
 
-    private void OnEnemyRemove(Enemy enemy)
+    private void OnEnemyReachedEnd(Enemy enemy, int wave)
     {
-        if (!allEnemies.Contains(enemy)) return;
-        allEnemies.Remove(enemy);
-        EnemiesKilledCount++;
-        EnemiesKilledInWave++;
-        OnEnemyKill?.Invoke();
-        if(EnemiesKilledInWave >= SpawnsInWave)
-        {
-            OnWaveComplete?.Invoke();
-        }
-        if(EnemiesKilledCount >= SpawnsInLevel)
-        {
-            OnLevelComplete?.Invoke();
-        }
+        if(!enemiesInLevel.Contains(enemy)) return;
+        var waveState = FindWaveState(wave);
+        if (waveState == null) return;
+        waveState.RemoveEnemy(this, enemy, true);
+        OnEnemyReachEnd?.Invoke(waveState, enemy);
+        AmountOFEnemiesReachedEndInLevel++;
+        AmountOfEnemiesDestroyedInLevel++;
+        CheckTheGameStateConditions(waveState);
     }
 
-    private void OnEnemyAdd(Enemy enemy)
+    private void OnEnemyRemove(Enemy enemy, int wave)
+    {      
+        if (!enemiesInLevel.Contains(enemy)) return;
+        var waveState = FindWaveState(wave);
+        if (waveState == null) return;       
+        waveState.RemoveEnemy(this, enemy);
+        enemiesInLevel.Remove(enemy);
+        AmountOfEnemiesDestroyedInLevel++;
+        OnEnemyRemoved?.Invoke(waveState, enemy);
+        CheckTheGameStateConditions(waveState);
+    }
+
+    private void OnEnemyAdd(Enemy enemy, int wave)
     {
-        if (allEnemies.Contains(enemy)) return;
-        allEnemies.Add(enemy);
-        SpawnedEnemiesCount++;
-        OnEnemySpawn?.Invoke();
+        if (enemiesInLevel.Contains(enemy)) return;
+        var waveState = FindWaveState(wave);
+        if (waveState == null) return;
+        waveState.AddEnemy(enemy);
+        enemiesInLevel.Add(enemy);
+        AmountOfEnemiesSpawnedInLevel++;
+        OnEnemySpawn?.Invoke(waveState, enemy);
+    }
+
+    private void CheckTheGameStateConditions(WaveState waveState)
+    {
+        if (waveState.AmountOfEnemiesKilledInWave >= waveState.AmountOfSpawnsInWave) OnWaveComplete?.Invoke(waveState);
+        if (AmountOfEnemiesDestroyedInLevel >= AmountOfSpawnsInLevel) OnLevelComplete?.Invoke(waveState);
+    }
+
+    private WaveState FindWaveState(int wave)
+    {
+        return waveStates.Find(o => o.WaveNumber == wave);
     }
 
     private List<Spawner> CheckSpawns()
@@ -98,7 +114,7 @@ public class SpawnersControl : MonoBehaviour
         for (int i = 0; i < transform.childCount; i++)
         {
             var spawn = transform.GetChild(i).GetComponent<Spawner>();
-            if (!spawners.Contains(spawn)) return true;
+            if (spawners.Contains(spawn)) continue;
             AddSpawnListeners(spawn);
         }
         return false;
@@ -109,19 +125,26 @@ public class SpawnersControl : MonoBehaviour
         return GetComponentsInChildren<Spawner>().ToList();
     }
 
-    public void SpawnWithSelectedSpawners(int phase)
+    private List<Spawner> GetSpawnersInWave(int wave)
     {
-        EnemiesKilledInWave = 0;
-        foreach (Spawner spawner in selectedSpawners)
+        return Spawners.FindAll(o => o.waveToParticipate == wave);
+    }
+
+    public void SpawnWithSelectedSpawners(int wave)
+    {
+        var spawnersInWave = GetSpawnersInWave(wave);
+        WaveState waveState = new WaveState(wave, spawnersInWave);
+        waveStates.Add(waveState);
+        foreach(var spawn in spawnersInWave)
         {
-            spawner.SpawnSet(phase);
+            spawn.SpawnSet();
         }
     }
 
-    private int GetSpawnsInWave()
+    private int GetAmountOfSpawnsInLevel()
     {
-        int spawnsInWave = 0;
-        Spawners.ForEach(o => spawnsInWave += o.SpawnsInWave);
-        return spawnsInWave;
+        int spawnsInLevel = 0;
+        Spawners.ForEach(o => spawnsInLevel += o.TotalSpawns);
+        return spawnsInLevel;
     }
 }

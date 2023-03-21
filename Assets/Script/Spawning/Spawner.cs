@@ -9,14 +9,16 @@ public class Spawner : MonoBehaviour
     private const string ENEMIES_HOLDER_IS_NULL_LOG_FORMAT = "Enemies holder is null, assign the reference in inspector to set parent for enemy spawns.";
     private const string ENEMY_PREFAB_PATH = "Prefabs/Enemies/";
 
+    [Header("Testing Parameters")]
     public EnemyType testSingleEnemySpawnEnemyType = EnemyType.Goblin;
     public Spawn testMultipleSpawnSpawn;
 
-    public List<SpawnSet> spawnSets = new List<SpawnSet>();
+    [Header("Spawning Parameters")]
+    public int waveToParticipate = 0;
+    public SpawnSet spawnSet;
     public List<Enemy> enemies = new List<Enemy>();    
 
-    public int TotalSpawns { get; protected set; }
-    public int SpawnsInWave { get => GetSpawnsInWave(); }
+    public int TotalSpawns { get => GetTotalSpawns(); }
 
     private EnemyHolder enemyHolder;
     public EnemyHolder EnemyHolder { get => enemyHolder = enemyHolder != null ? enemyHolder : FindObjectOfType<EnemyHolder>(); }
@@ -24,20 +26,16 @@ public class Spawner : MonoBehaviour
     public delegate void SpawnAIDelegate(Vector3 position);
     public static event SpawnAIDelegate OnPathBlocked;
 
-    internal delegate void EnemiesListDelegate(Enemy enemy);
+    internal delegate void EnemiesListDelegate(Enemy enemy, int wave);
     internal event EnemiesListDelegate OnNewEnemyAdd;
     internal event EnemiesListDelegate OnEnemyRemove;
+    internal event EnemiesListDelegate OnEnemyReachedEnd;
 
-    private int GetSpawnsInWave()
+    public int GetSpawnsInWave(int wave)
     {
         int spawnsInWave = 0;
-        spawnSets[GameControl.Instance.currentWave].spawns.ForEach(o => spawnsInWave += o.amount);
+        spawnSet.spawns.ForEach(o => spawnsInWave += o.amount);
         return spawnsInWave;
-    }
-
-    private void Awake()
-    {
-        CalculateTotalSpawns();
     }
 
     virtual protected void Start()
@@ -46,10 +44,11 @@ public class Spawner : MonoBehaviour
         DestroyAllSpawnedEnemies();      
     }
 
-    public void CalculateTotalSpawns()
+    public int GetTotalSpawns()
     {
-        TotalSpawns = 0;
-        spawnSets.ForEach(o => o.spawns.ForEach(s => TotalSpawns += s.amount));
+        var totalSpawns = 0;
+        spawnSet.spawns.ForEach(o => totalSpawns += o.amount);
+        return totalSpawns;
     }
 
     virtual public void DestroyAllSpawnedEnemies()
@@ -77,7 +76,9 @@ public class Spawner : MonoBehaviour
 
     virtual protected void OnEnemyReachEnd(Enemy enemy)
     {
-        RemoveEnemy(enemy);
+        if (!enemies.Contains(enemy)) return;
+        enemies.Remove(enemy);
+        OnEnemyReachedEnd?.Invoke(enemy, waveToParticipate);
     }
 
     virtual public void SpawnSingleEnemy(EnemyType enemyType)
@@ -94,19 +95,18 @@ public class Spawner : MonoBehaviour
     {
         if (!enemies.Contains(enemy)) return;
         enemies.Remove(enemy);
-        OnEnemyRemove?.Invoke(enemy);
+        OnEnemyRemove?.Invoke(enemy, waveToParticipate);
     }
 
     virtual public void AddEnemy(Enemy enemy)
     {
         enemies.Add(enemy);
-        OnNewEnemyAdd?.Invoke(enemy);
+        OnNewEnemyAdd?.Invoke(enemy, waveToParticipate);
     }
 
-    virtual public void SpawnSet(int phase)
+    virtual public void SpawnSet()
     {
-        if(phase > spawnSets.Count) return;
-        StartCoroutine(SpawnSetSpawnsInTurns(spawnSets[phase]));
+        StartCoroutine(SpawnSetSpawnsInTurns(spawnSet));
     }
 
     virtual protected GameObject LoadSpawnPrefab(EnemyType enemyType)

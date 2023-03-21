@@ -1349,7 +1349,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 851df5fdd269f374bacceec28ec6e49a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  allEnemies: []
+  waveStates: []
+  enemiesInLevel: []
   selectedSpawners:
   - {fileID: 1359358495}
 --- !u!4 &488277397
@@ -2595,15 +2596,16 @@ MonoBehaviour:
     interval: 1
     startDelay: 0
     enemyType: 0
-  spawnSets:
-  - spawns:
+  wave: 0
+  spawnSet:
+    spawns:
     - amount: 5
       interval: 2
       startDelay: 1
       enemyType: 0
     - amount: 3
       interval: 3
-      startDelay: 5
+      startDelay: 3
       enemyType: 1
   enemies: []
 --- !u!1 &1379610123
@@ -2770,7 +2772,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameStyle: 0
   nextWave: 0
-  currentWave: 0
+  spawnWave: 0
+  playerLife: 100
 --- !u!4 &1436769055
 Transform:
   m_ObjectHideFlags: 0
