@@ -1,4 +1,3 @@
-using TheTD.Core;
 using TMPro;
 using UnityEngine;
 
@@ -12,19 +11,14 @@ namespace TheTD.UI
 
         private void Start()
         {
-            GameControl.Instance.OnPlayerSpendGold += OnPlayerSpendGold;
-            GameControl.Instance.OnPlayerGainGold += OnPlayerGainGold;
-            SetGoldText(GameControl.Instance.PlayerGold);
-        }
-        
-        private void OnPlayerGainGold(int goldDifference, int PlayerGoldAfterOperation)
-        {
-            SetGoldText(PlayerGoldAfterOperation);
+            Player.OnSpendGold += OnPlayerGoldChange;
+            Player.OnGainGold += OnPlayerGoldChange;
+            Player.OnInitialized += OnPlayerGoldChange;         
         }
 
-        private void OnPlayerSpendGold(int goldDifference, int PlayerGoldAfterOperation)
+        private void OnPlayerGoldChange(Player player)
         {
-            SetGoldText(PlayerGoldAfterOperation);
+            SetGoldText(player.Gold.Current);
         }
 
         private string FormatGoldText(int value)

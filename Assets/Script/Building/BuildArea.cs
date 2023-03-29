@@ -191,7 +191,7 @@ public class BuildArea : MonoBehaviour
     public void BuildOnSelectedSpot(TowerData tower)
     {
         if (selectedBuildSpot == null ||selectedBuildSpot.IsOccupied) return;
-        if (!GameControl.Instance.HasGoldForTower(tower.Tower))
+        if (!GameControl.Instance.Player.Gold.HasGoldForTower(tower.Tower.buildCost))
         {
             Debug.Log("Not enough gold to build the tower");
             return;
