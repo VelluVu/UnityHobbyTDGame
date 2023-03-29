@@ -34,7 +34,7 @@ public abstract class ProjectileTower : Tower
         var aimPosition = predictedPosition;
         var aimDirection = aimPosition.normalized;
         TurnTurretTowardsAimDirection(aimDirection);
-        isLockedToTarget = ISLockedOnEnemy(aimDirection);
+        isLockedToTarget = IsLockedOnEnemy(aimDirection);
         TryToShoot();
         return target;
     }

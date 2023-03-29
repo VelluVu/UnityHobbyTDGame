@@ -1,4 +1,3 @@
-using System;
 using Unity.AI.Navigation;
 using UnityEngine;
 
@@ -19,8 +18,8 @@ public class NavMeshControl : MonoBehaviour
     {     
         WorldObstacleControl.OnObstacleRemove += OnObstacleRemove;
         WorldObstacleControl.OnObstacleAdd += OnObstacleAdd;
-        BuildArea.OnBuildSpotBuilt += OnObstacleAdd;
-        BuildArea.OnBuildingRemove += OnObstacleRemove;
+        BuildArea.OnBuild += OnBuild;
+        BuildArea.OnBuildingRemove += OnBuildingRemove;
     }
 
     private void OnObstacleAdd()
@@ -33,7 +32,12 @@ public class NavMeshControl : MonoBehaviour
         RebuildNavMesh();
     }
 
-    private void OnBuildSpot()
+    private void OnBuild(Building building)
+    {
+        RebuildNavMesh();
+    }
+
+    private void OnBuildingRemove(Building building)
     {
         RebuildNavMesh();
     }

@@ -10,18 +10,11 @@ public class ArrowProjectile : Projectile
     protected override void HitEnemy(Collision collision)
     {
         base.HitEnemy(collision);
-        collision.rigidbody.AddRelativeForce(Vector3.forward * ThrustForce);
         gameObject.transform.SetParent(collision.transform);
         Collider.enabled = false;
         Rigidbody.isKinematic = true;
-        //var targetLocalScaleDifference = CalculateTargetScaleDifference(collision.transform.lossyScale);
-        //gameObject.transform.localScale += targetLocalScaleDifference;
-        transform.rotation = Quaternion.LookRotation(collision.contacts[0].normal);
-    }
-
-    private Vector3 CalculateTargetScaleDifference(Vector3 lossyScale)
-    {
-        return new Vector3(1f % lossyScale.x, 1f % lossyScale.y, 1f % lossyScale.z);
+      
+        transform.rotation = Quaternion.LookRotation((collision.contacts[0].point - transform.position).normalized);
     }
 
     protected override void FixedUpdate()

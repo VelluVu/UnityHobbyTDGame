@@ -9,9 +9,7 @@ public class Projectile : MonoBehaviour
     public LayerMask hitLayerMask;
     [SerializeField] protected float timeToDeactivateAfterHit = 5f;
     [SerializeField] protected float projectileSpeed = 4f;
-    [SerializeField] protected float damage = 10f;
-
-    public float ThrustForce { get => damage; }
+    [SerializeField] protected Damage damage;
 
     public Transform OriginalParent { get; private set; }
 
@@ -74,6 +72,8 @@ public class Projectile : MonoBehaviour
 
     virtual protected void HitEnemy(Collision collision)
     {
+        damage.collision = collision;
+        damage.projectile = this;
         collision.gameObject.GetComponentInParent<Enemy>().TakeDamage(damage);
     }
 

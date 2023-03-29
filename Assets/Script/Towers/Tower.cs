@@ -6,9 +6,7 @@ public abstract class Tower : MonoBehaviour
 {   
     protected const string SHOOT_POINT_IS_NULL_LOG_FORMAT = "Shoot point is null, please assign shoot point transform to turret prefabs script";
 
-    protected TowerData towerData;
-    virtual public TowerData TowerData { get => towerData; set => towerData = value; }
-
+    public int buildCost = 5;
     [SerializeField] protected bool isLockedToTarget = false;
 
     [SerializeField] protected float targetFindInterval = 1f;
@@ -25,6 +23,9 @@ public abstract class Tower : MonoBehaviour
 
     protected float timeToNextDraw = 0f;
     protected float nextShootTime = 0f;
+
+    protected TowerData _towerData;
+    virtual public TowerData TowerData { get => _towerData; set => _towerData = value; }
 
     protected delegate Enemy TargetSearchDelegate(Enemy currentEnemy, Enemy previousEnemy);
 
@@ -55,7 +56,7 @@ public abstract class Tower : MonoBehaviour
         var aimPosition = target.transform.position - shootPoint.transform.position + target.EnemyBody.BodyCenter;
         var aimDirection = aimPosition.normalized;
         TurnTurretTowardsAimDirection(aimDirection);
-        isLockedToTarget = ISLockedOnEnemy(aimDirection);
+        isLockedToTarget = IsLockedOnEnemy(aimDirection);
         TryToShoot();
         return target;
     }
@@ -71,7 +72,7 @@ public abstract class Tower : MonoBehaviour
         Instantiate(TowerData.TowerPrefab, parent.position, transform.rotation, parent);
     }
 
-    virtual public bool ISLockedOnEnemy(Vector3 aimDirection)
+    virtual public bool IsLockedOnEnemy(Vector3 aimDirection)
     {
         Vector3 turretForward = turretRotator.transform.forward;
         Vector3 aimDirectionFlat = aimDirection;

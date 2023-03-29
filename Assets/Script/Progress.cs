@@ -45,16 +45,16 @@ public class Progress : MonoBehaviour
 
     private void Reset()
     {
-        PopulateTowers();
+        InitTowers();
     }
 
     public void ResetTowersList()
     {
         towers.Clear();
-        PopulateTowers();
+        InitTowers();
     }
 
-    private void PopulateTowers()
+    private void InitTowers()
     {
         if (towers.Any()) return;
         var gameObjects = Resources.LoadAll(TOWERS_PATH).ToList();

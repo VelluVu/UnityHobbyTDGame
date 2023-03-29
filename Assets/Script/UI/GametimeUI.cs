@@ -1,31 +1,35 @@
+using TMPro;
 using UnityEngine;
 
-public class GametimeUI : MonoBehaviour
+namespace TheTD.UI
 {
-    private TextMeshUI[] textMeshes;
-    public TextMeshUI[] TextMeshes { get => textMeshes = !textMeshes.IsNullOrEmpty() ? textMeshes : GetComponentsInChildren<TextMeshUI>(); }
-
-    private void TrackSeconds()
+    public class GametimeUI : MonoBehaviour
     {
-        TextMeshes[2].SetText(StringHelper.ConvertNumberToTwoDigitString(Gametime.Seconds));
-    }
+        private TextMeshProUGUI[] textMeshes;
+        public TextMeshProUGUI[] TextMeshes { get => textMeshes = !textMeshes.IsNullOrEmpty() ? textMeshes : GetComponentsInChildren<TextMeshProUGUI>(); }
 
-    private void TrackMinutes()
-    {
-        string text = StringHelper.ConvertNumberToTwoDigitString(Gametime.Minutes);
-        text = ": " + text + " :";
-        TextMeshes[1].SetText(text);
-    }
+        private void TrackSeconds()
+        {
+            TextMeshes[2].SetText(StringHelper.ConvertNumberToTwoDigitString(Gametime.Seconds));
+        }
 
-    private void TrackHours()
-    {
-        TextMeshes[0].SetText(StringHelper.ConvertNumberToTwoDigitString(Gametime.Hours));
-    }
+        private void TrackMinutes()
+        {
+            string text = StringHelper.ConvertNumberToTwoDigitString(Gametime.Minutes);
+            text = ": " + text + " :";
+            TextMeshes[1].SetText(text);
+        }
 
-    private void Update()
-    {
-        TrackSeconds();
-        TrackMinutes();
-        TrackHours();
+        private void TrackHours()
+        {
+            TextMeshes[0].SetText(StringHelper.ConvertNumberToTwoDigitString(Gametime.Hours));
+        }
+
+        private void Update()
+        {
+            TrackSeconds();
+            TrackMinutes();
+            TrackHours();
+        }
     }
 }

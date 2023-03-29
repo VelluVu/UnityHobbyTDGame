@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using TheTD.Core;
 using UnityEngine;
 using UnityEngine.ProBuilder;
 
@@ -25,27 +25,27 @@ public class BuildArea : MonoBehaviour
     public Vector2 TotalSize { get => new Vector2(size.x * cellSize + size.x * spacing, size.y * cellSize + size.y * spacing); }
     public Vector3 CenterGrid { get => new Vector3(TotalSize.x * 0.5f, transform.position.y, TotalSize.y * 0.5f); }
 
-    [SerializeField]private bool isGridVisible = true;
-    public bool IsGridVisible { get => isGridVisible;  set => SetIsGridVisible(value); }
+    [SerializeField]private bool _isGridVisible = true;
+    public bool IsGridVisible { get => _isGridVisible;  set => SetIsGridVisible(value); }
 
-    private LineRenderer lineRenderer;
-    public LineRenderer LineRenderer { get => lineRenderer = lineRenderer != null ? lineRenderer : GetComponent<LineRenderer>(); }
+    private LineRenderer _lineRenderer;
+    public LineRenderer LineRenderer { get => _lineRenderer = _lineRenderer != null ? _lineRenderer : GetComponent<LineRenderer>(); }
 
-    private ProBuilderMesh mesh;
-    public ProBuilderMesh Mesh { get => mesh = mesh != null ? mesh : GetComponentInChildren<ProBuilderMesh>() != null ? GetComponentInChildren<ProBuilderMesh>() : ShapeGenerator.GeneratePlane(PivotLocation.FirstVertex, TotalSize.x, TotalSize.y, size.x, size.y, Axis.Up); }
+    private ProBuilderMesh _mesh;
+    public ProBuilderMesh Mesh { get => _mesh = _mesh != null ? _mesh : GetComponentInChildren<ProBuilderMesh>() != null ? GetComponentInChildren<ProBuilderMesh>() : ShapeGenerator.GeneratePlane(PivotLocation.FirstVertex, TotalSize.x, TotalSize.y, size.x, size.y, Axis.Up); }
 
-    private SelectSpotVisual selectVisual;
+    private SelectSpotVisual _selectVisual;
     public SelectSpotVisual SelectVisual { get => GetSelectSpotVisual(); }
 
-    private Material gridMaterial;
-    public Material GridMaterial { get => gridMaterial = gridMaterial != null ? gridMaterial : Resources.Load<Material>("Materials/GridMaterial"); }
+    private Material _gridMaterial;
+    public Material GridMaterial { get => _gridMaterial = _gridMaterial != null ? _gridMaterial : Resources.Load<Material>("Materials/GridMaterial"); }
 
 
     public delegate void BuildAreaDelegate(BuildArea buildArea);
     public static event BuildAreaDelegate OnBuildAreaClicked;
 
-    public delegate void BuildDelegate();
-    public static event BuildDelegate OnBuildSpotBuilt;
+    public delegate void BuildDelegate(Building building);
+    public static event BuildDelegate OnBuild;
     public static event BuildDelegate OnBuildingRemove;
 
     private void Start()
@@ -191,11 +191,16 @@ public class BuildArea : MonoBehaviour
     public void BuildOnSelectedSpot(TowerData tower)
     {
         if (selectedBuildSpot == null ||selectedBuildSpot.IsOccupied) return;
+        if (!GameControl.Instance.HasGoldForTower(tower.Tower))
+        {
+            Debug.Log("Not enough gold to build the tower");
+            return;
+        }
         selectedBuildSpot.IsOccupied = true;
         SelectVisual.SetMaterial(selectedBuildSpot.IsOccupied);
         var building = CreateBuilding(tower);
         buildings.Add(building);
-        OnBuildSpotBuilt?.Invoke();
+        OnBuild?.Invoke(building);
     }
 
     public void SellOnSelectedSpot()
@@ -208,7 +213,7 @@ public class BuildArea : MonoBehaviour
     public void DestroyBuilding(Building building)
     {
         buildings.Remove(building);
-        OnBuildingRemove?.Invoke();
+        OnBuildingRemove?.Invoke(building);
         building.BuildSpot.IsOccupied = false;
         SelectVisual.SetMaterial(building.BuildSpot.IsOccupied);
         Destroy(building.gameObject);
@@ -255,15 +260,15 @@ public class BuildArea : MonoBehaviour
 
     private void SetIsGridVisible(bool value)
     {
-        if(isGridVisible == value) return;
-        isGridVisible = value;
-        Mesh.gameObject.SetActive(isGridVisible);
+        if(_isGridVisible == value) return;
+        _isGridVisible = value;
+        Mesh.gameObject.SetActive(_isGridVisible);
     }
 
     private SelectSpotVisual GetSelectSpotVisual()
     {
-        if (selectVisual != null) return selectVisual;
-        selectVisual = Instantiate(Resources.Load<GameObject>("Prefabs/SelectSpotVisual"), transform).GetComponent<SelectSpotVisual>();
-        return selectVisual;
+        if (_selectVisual != null) return _selectVisual;
+        _selectVisual = Instantiate(Resources.Load<GameObject>("Prefabs/SelectSpotVisual"), transform).GetComponent<SelectSpotVisual>();
+        return _selectVisual;
     }
 }

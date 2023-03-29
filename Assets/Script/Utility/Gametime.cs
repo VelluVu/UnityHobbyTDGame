@@ -1,21 +1,26 @@
 using System.Collections;
+using TheTD.Core;
 using UnityEngine;
 
 [System.Serializable]
 public class Gametime : MonoBehaviour
 {
+    private IEnumerator timeCoroutine;
+    private bool isTimeRunning = false;
+
     public static Gametime Instance { get; private set; }
 
     public float PlayTimeInSeconds { get; private set; }
     public static int Seconds { get; private set; }
 
-    private static int minutes;
-    public static int Minutes { get => minutes; private set => SetMinutes(value); }
+    private static int _minutes;
+    public static int Minutes { get => _minutes; private set => SetMinutes(value); }
 
-    private static int hours;
-    public static int Hours { get => hours; private set => SetHours(value); }
+    private static int _hours;
+    public static int Hours { get => _hours; private set => SetHours(value); }
 
     public static int Days { get; private set; }
+    public bool IsPaused { get; private set; }
 
     public delegate void OnTimeChange();
     public static event OnTimeChange OnMinutesChange;
@@ -29,32 +34,66 @@ public class Gametime : MonoBehaviour
 
     private void Start()
     {
-        StartCoroutine(TimeCoroutine());
+        timeCoroutine = TimeCoroutine();
+        GameControl.Instance.OnPlayerLose += OnPlayerLose;
+        GameControl.Instance.OnStartWave += OnStartWave;
+        GameControl.Instance.OnWaveClear += OnWaveClear;
+    }
+
+    private void OnWaveClear()
+    {
+        StopTimer();
+    }
+
+    private void OnStartWave()
+    {
+        StartTimer();
+    }
+
+    private void StartTimer()
+    {
+        if (!isTimeRunning) StartCoroutine(timeCoroutine);
+        else IsPaused = false;
+    }
+
+    private void StopTimer()
+    {
+        IsPaused = true;
+    }
+
+    private void OnPlayerLose()
+    {
+        StopTimer();
     }
 
     IEnumerator TimeCoroutine()
     {
+        isTimeRunning = true;
+
         while (true)
         {
-            PlayTimeInSeconds += Time.deltaTime;
-            Seconds = Mathf.FloorToInt(PlayTimeInSeconds % 60);
-            Minutes = Mathf.FloorToInt(PlayTimeInSeconds / 60) % 60;
-            Hours = Mathf.FloorToInt(PlayTimeInSeconds / 3600);
+            if (!IsPaused)
+            {
+                PlayTimeInSeconds += Time.deltaTime;
+                Seconds = Mathf.FloorToInt(PlayTimeInSeconds % 60);
+                Minutes = Mathf.FloorToInt(PlayTimeInSeconds / 60) % 60;
+                Hours = Mathf.FloorToInt(PlayTimeInSeconds / 3600);
+            }
             yield return null;
         }
     }
 
     private static void SetMinutes(int value)
     {
-        if(minutes == value) return;
-        minutes = value;
+        if (_minutes == value) return;
+        _minutes = value;
         OnMinutesChange?.Invoke();
     }
 
     private static void SetHours(int value)
     {
-        if(hours == value) return;
-        hours = value;
+        if (_hours == value) return;
+        _hours = value;
         OnHoursChange?.Invoke();
 
         if (value >= 24)

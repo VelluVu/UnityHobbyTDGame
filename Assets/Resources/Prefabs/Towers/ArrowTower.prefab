@@ -238,17 +238,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 293f58a100972e34d9d22ef01743ea1a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  buildCost: 20
   isLockedToTarget: 0
   targetFindInterval: 1
   turnSpeed: 5
   shootInterval: 1
-  maxShootForce: 10
+  maxRange: 6
   debugDrawInterval: 1
   turretRotator: {fileID: 4937141189246830307}
   shootPoint: {fileID: 4188509629688371598}
   target: {fileID: 0}
+  searchTargetMethod: 0
+  maxShootForce: 10
   projectilePrefab: {fileID: 1915144652504460451, guid: df37511f474d68c49be27e80772f6ba5, type: 3}
-  projectiles: []
 --- !u!1 &6369959010192936285
 GameObject:
   m_ObjectHideFlags: 0

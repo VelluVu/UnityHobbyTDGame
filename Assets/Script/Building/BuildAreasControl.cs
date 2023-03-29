@@ -1,18 +1,17 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using TheTD.UI;
 using UnityEngine;
 
 public class BuildAreasControl : MonoBehaviour
 {
     public static BuildAreasControl Instance { get; private set; }
 
-    private BuildingHolder buildingHolder;
-    public BuildingHolder BuildingHolder { get => buildingHolder = buildingHolder != null ? buildingHolder : FindObjectOfType<BuildingHolder>(); }
+    private BuildingHolder _buildingHolder;
+    public BuildingHolder BuildingHolder { get => _buildingHolder = _buildingHolder != null ? _buildingHolder : FindObjectOfType<BuildingHolder>(); }
 
-    private List<BuildArea> buildAreas;
-    public List<BuildArea> BuildAreas { get => buildAreas = buildAreas != null ? CheckBuildAreas() : GetBuildAreas(); }
+    private List<BuildArea> _buildAreas;
+    public List<BuildArea> BuildAreas { get => _buildAreas = _buildAreas != null ? CheckBuildAreas() : GetBuildAreas(); }
 
     private BuildArea selectedBuildArea = null;
 
@@ -58,7 +57,7 @@ public class BuildAreasControl : MonoBehaviour
 
     private List<BuildArea> CheckBuildAreas()
     {
-        return HasNewBuildAreas() ? GetBuildAreas() : buildAreas;
+        return HasNewBuildAreas() ? GetBuildAreas() : _buildAreas;
     }
 
     private bool HasNewBuildAreas()
@@ -66,7 +65,7 @@ public class BuildAreasControl : MonoBehaviour
         for (int i = 0; i < transform.childCount; i++)
         {
             var buildArea = transform.GetChild(i).GetComponent<BuildArea>();
-            if (!buildAreas.Contains(buildArea)) return true;
+            if (!_buildAreas.Contains(buildArea)) return true;
         }
         return false;
     }

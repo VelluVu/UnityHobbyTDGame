@@ -1,0 +1,1 @@
+Folder for External Files, like asset store packs.

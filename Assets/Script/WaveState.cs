@@ -1,17 +1,19 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 [System.Serializable]
 public class WaveState
 {
     public List<Spawner> SpawnersInWave = new List<Spawner>();
     public List<Enemy> enemiesInWave = new List<Enemy>();
+    public bool IsComplete { get => GetIsComplete(); }
     public int WaveNumber { get; private set; }
     public int AmountOfAliveEnemies { get => enemiesInWave.Count; }
     public int AmountOfSpawnsInWave { get => GetAmountOFSpawnsInWave(); }
     public int AmountOfEnemiesKilledInWave { get; private set; }
     public int AmountOfEnemiesSpawnedInWave { get; private set; }
     public int AmountOFEnemiesReachedEnd { get; private set; }
- 
+
     public WaveState(int waveNumber, List<Spawner> spawnersInWave)
     {
         WaveNumber = waveNumber;
@@ -31,6 +33,11 @@ public class WaveState
         if (enemiesInWave.Contains(enemy)) return;
         enemiesInWave.Add(enemy);
         AmountOfEnemiesSpawnedInWave++;
+    }
+
+    public bool GetIsComplete()
+    {
+        return AmountOfAliveEnemies == 0 && AmountOfEnemiesKilledInWave == AmountOfSpawnsInWave;
     }
 
     private int GetAmountOFSpawnsInWave()

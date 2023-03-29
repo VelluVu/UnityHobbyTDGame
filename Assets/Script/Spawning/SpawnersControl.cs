@@ -5,26 +5,27 @@ using UnityEngine;
 public class SpawnersControl : MonoBehaviour
 {
     public static SpawnersControl Instance { get; private set; }
+    [Header("Testing Variables")]
+    public int spawnWaveForTesting = 0;
 
+    [Header("All spawned waves and enemies")]
     public List<WaveState> waveStates = new List<WaveState>();
-
     public List<Enemy> enemiesInLevel = new List<Enemy>();
+  
     public int AmountOfAliveEnemiesInLevel { get => enemiesInLevel.Count; }
     public int AmountOfSpawnsInLevel { get => GetAmountOfSpawnsInLevel(); }
     public int AmountOfEnemiesDestroyedInLevel { get; private set; }
     public int AmountOFEnemiesReachedEndInLevel { get; private set; }
     public int AmountOfEnemiesSpawnedInLevel { get; private set; }
 
-    private EnemyHolder enemyHolder;
-    public EnemyHolder EnemyHolder { get => enemyHolder = enemyHolder != null ? enemyHolder : FindObjectOfType<EnemyHolder>(); }
+    private EnemyHolder _enemyHolder;
+    public EnemyHolder EnemyHolder { get => _enemyHolder = _enemyHolder != null ? _enemyHolder : FindObjectOfType<EnemyHolder>(); }
 
-    private List<Spawner> spawners;
-    public List<Spawner> Spawners { get => spawners = spawners != null ? CheckSpawns() : GetSpawns(); }
-
-    public List<Spawner> selectedSpawners = new List<Spawner>();
+    private List<Spawner> _spawners;
+    public List<Spawner> Spawners { get => _spawners = _spawners != null ? CheckSpawns() : GetSpawns(); }
 
     public delegate void SpawnersControlDelegate(WaveState waveState, Enemy enemy);
-    public event SpawnersControlDelegate OnEnemyRemoved;
+    public event SpawnersControlDelegate OnEnemyKilled;
     public event SpawnersControlDelegate OnEnemyReachEnd;
     public event SpawnersControlDelegate OnEnemySpawn;
 
@@ -46,9 +47,9 @@ public class SpawnersControl : MonoBehaviour
 
     private void Start()
     {
-        spawners = GetSpawns();
-        if (!spawners.Any()) return;
-        spawners.ForEach(o => AddSpawnListeners(o));  
+        _spawners = GetSpawns();
+        if (!_spawners.Any()) return;
+        _spawners.ForEach(o => AddSpawnListeners(o));  
     }
 
     public void AddSpawnListeners(Spawner spawn)
@@ -78,7 +79,7 @@ public class SpawnersControl : MonoBehaviour
         waveState.RemoveEnemy(this, enemy);
         enemiesInLevel.Remove(enemy);
         AmountOfEnemiesDestroyedInLevel++;
-        OnEnemyRemoved?.Invoke(waveState, enemy);
+        OnEnemyKilled?.Invoke(waveState, enemy);
         CheckTheGameStateConditions(waveState);
     }
 
@@ -106,7 +107,7 @@ public class SpawnersControl : MonoBehaviour
 
     private List<Spawner> CheckSpawns()
     {  
-        return HasNewSpawns() ? GetSpawns() : spawners;
+        return HasNewSpawns() ? GetSpawns() : _spawners;
     }
 
     private bool HasNewSpawns()
@@ -114,7 +115,7 @@ public class SpawnersControl : MonoBehaviour
         for (int i = 0; i < transform.childCount; i++)
         {
             var spawn = transform.GetChild(i).GetComponent<Spawner>();
-            if (spawners.Contains(spawn)) continue;
+            if (_spawners.Contains(spawn)) continue;
             AddSpawnListeners(spawn);
         }
         return false;
@@ -139,6 +140,11 @@ public class SpawnersControl : MonoBehaviour
         {
             spawn.SpawnSet();
         }
+    }
+
+    public bool AreOnGoingWavesFinished()
+    {
+        return waveStates.TrueForAll(o => o.IsComplete == true);
     }
 
     private int GetAmountOfSpawnsInLevel()

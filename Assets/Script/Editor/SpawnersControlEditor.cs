@@ -1,3 +1,4 @@
+using TheTD.Core;
 using UnityEditor;
 using UnityEngine;
 
@@ -12,7 +13,7 @@ public class SpawnersControlEditor : Editor
 
         if(GUILayout.Button(SPAWN_WITH_SELECTED_SPAWNERS))
         {
-            spawnsControl.SpawnWithSelectedSpawners(GameControl.Instance.nextWave);
+            spawnsControl.SpawnWithSelectedSpawners(0);
         }
 
         base.OnInspectorGUI();
