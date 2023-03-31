@@ -1,4 +1,7 @@
-public class GoblinEnemy : Enemy
+namespace TheTD.Enemies
 {
-    //Load different body and stats on start
+    public class GoblinEnemy : Enemy
+    {
+        //Load different body and stats on start
+    }
 }

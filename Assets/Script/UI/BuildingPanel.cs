@@ -1,5 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using TheTD.Core;
+using TheTD.Towers;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,8 +12,9 @@ namespace TheTD.UI
     {
         private const string PATH_TO_BUILDING_OPTION = "Prefabs/UI/BuildingOption";
         private const string SELECTED_TOWER_IS_NULL = "Selected tower is null, please select tower to build from building panel";
-
+        private const string BUILD_BUTTON_IS_NULL = "Build button is null, please drag the build button reference for Building Panel";
         public Button buildButton;
+        public Button sellButton;
 
         private ScrollRect buildingScrollRect;
         public ScrollRect BuildingScrollRect { get => buildingScrollRect = buildingScrollRect != null ? buildingScrollRect : GetComponentInChildren<ScrollRect>(); }
@@ -32,10 +36,10 @@ namespace TheTD.UI
 
         public void AddListeners()
         {
-            Progress.OnTowerProgressChange += OnTowerProgressChange;
+            GameProgress.OnTowerProgressChange += OnTowerProgressChange;
             if (buildButton == null)
             {
-                Debug.LogFormat("Build button is null, please drag the build button reference for Building Panel");
+                Debug.LogFormat(BUILD_BUTTON_IS_NULL);
                 return;
             }
             buildButton.onClick.AddListener(BuildSelectedTower);
@@ -51,9 +55,9 @@ namespace TheTD.UI
             OnBuildClick?.Invoke(selectedTower);
         }
 
-        private void OnTowerProgressChange(Progress progress)
+        private void OnTowerProgressChange()
         {
-            var unlockedTowers = progress.GetUnlockedTowers();
+            var unlockedTowers = GameProgress.Instance.GetUnlockedTowers();
             if (!buildingOptions.Any())
             {
                 InstantiateBuildingOptions(unlockedTowers);

@@ -1,50 +1,53 @@
 using Unity.AI.Navigation;
 using UnityEngine;
 
-public class NavMeshControl : MonoBehaviour
+namespace TheTD.Building
 {
-    private NavMeshSurface navMeshSurface;
-    public NavMeshSurface NavMeshSurface { get => navMeshSurface = navMeshSurface != null ? navMeshSurface : GetComponent<NavMeshSurface>(); }
-
-    public delegate void NavMeshSurfaceDelegate(NavMeshSurface surface);
-    public static event NavMeshSurfaceDelegate OnNavMeshRebuild;
-
-    private void Start()
+    public class NavMeshControl : MonoBehaviour
     {
-       // AddListeners();
-    }
+        private NavMeshSurface navMeshSurface;
+        public NavMeshSurface NavMeshSurface { get => navMeshSurface = navMeshSurface != null ? navMeshSurface : GetComponent<NavMeshSurface>(); }
 
-    public void AddListeners()
-    {     
-        WorldObstacleControl.OnObstacleRemove += OnObstacleRemove;
-        WorldObstacleControl.OnObstacleAdd += OnObstacleAdd;
-        BuildArea.OnBuild += OnBuild;
-        BuildArea.OnBuildingRemove += OnBuildingRemove;
-    }
+        public delegate void NavMeshSurfaceDelegate(NavMeshSurface surface);
+        public static event NavMeshSurfaceDelegate OnNavMeshRebuild;
 
-    private void OnObstacleAdd()
-    {
-        RebuildNavMesh();
-    }
+        private void Start()
+        {
+            // AddListeners();
+        }
 
-    private void OnObstacleRemove()
-    {
-        RebuildNavMesh();
-    }
+        public void AddListeners()
+        {
+            WorldObstacleControl.OnObstacleRemove += OnObstacleRemove;
+            WorldObstacleControl.OnObstacleAdd += OnObstacleAdd;
+            BuildArea.OnBuild += OnBuild;
+            BuildArea.OnBuildingRemove += OnBuildingRemove;
+        }
 
-    private void OnBuild(Building building)
-    {
-        RebuildNavMesh();
-    }
+        private void OnObstacleAdd()
+        {
+            RebuildNavMesh();
+        }
 
-    private void OnBuildingRemove(Building building)
-    {
-        RebuildNavMesh();
-    }
+        private void OnObstacleRemove()
+        {
+            RebuildNavMesh();
+        }
 
-    private void RebuildNavMesh()
-    {
-        NavMeshSurface.BuildNavMesh();
-        OnNavMeshRebuild?.Invoke(NavMeshSurface);
+        private void OnBuild(Construction building)
+        {
+            RebuildNavMesh();
+        }
+
+        private void OnBuildingRemove(Construction building)
+        {
+            RebuildNavMesh();
+        }
+
+        private void RebuildNavMesh()
+        {
+            NavMeshSurface.BuildNavMesh();
+            OnNavMeshRebuild?.Invoke(NavMeshSurface);
+        }
     }
 }

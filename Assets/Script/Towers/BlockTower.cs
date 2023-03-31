@@ -1,7 +1,10 @@
-public class BlockTower : Tower
+namespace TheTD.Towers
 {
-    protected override void Start()
+    public class BlockTower : Tower
     {
-        
+        protected override void Start()
+        {
+
+        }
     }
 }

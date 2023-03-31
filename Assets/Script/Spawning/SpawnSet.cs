@@ -1,7 +1,10 @@
 ﻿using System.Collections.Generic;
 
-[System.Serializable]
-public class SpawnSet
+namespace TheTD.Spawning
 {
-    public List<Spawn> spawns = new List<Spawn>();
+    [System.Serializable]
+    public class SpawnSet
+    {
+        public List<Spawn> spawns = new List<Spawn>();
+    }
 }

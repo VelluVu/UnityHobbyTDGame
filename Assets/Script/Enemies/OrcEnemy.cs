@@ -1,4 +1,7 @@
-public class OrcEnemy : Enemy
+namespace TheTD.Enemies
 {
-    //Load different body and stats on start
+    public class OrcEnemy : Enemy
+    {
+        //Load different body and stats on start
+    }
 }

@@ -29,7 +29,19 @@ public class Gametime : MonoBehaviour
 
     private void Awake()
     {
-        Instance = this;
+        CheckSingleton();
+    }
+
+    private void CheckSingleton()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(this);
+        }
+        else
+        {
+            Instance = this;
+        }
     }
 
     private void Start()
@@ -40,12 +52,12 @@ public class Gametime : MonoBehaviour
         GameControl.Instance.OnWaveClear += OnWaveClear;
     }
 
-    private void OnWaveClear()
+    private void OnWaveClear(int wave)
     {
         StopTimer();
     }
 
-    private void OnStartWave()
+    private void OnStartWave(int wave)
     {
         StartTimer();
     }
@@ -61,7 +73,7 @@ public class Gametime : MonoBehaviour
         IsPaused = true;
     }
 
-    private void OnPlayerLose()
+    private void OnPlayerLose(int wave)
     {
         StopTimer();
     }

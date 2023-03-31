@@ -1,4 +1,5 @@
-﻿public enum EnemyType
+﻿
+public enum EnemyType
 {
     Goblin,
     Orc,

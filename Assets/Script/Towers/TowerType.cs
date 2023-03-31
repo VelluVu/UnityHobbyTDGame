@@ -1,6 +1,9 @@
-public enum TowerType
+namespace TheTD.Towers
 {
-    BlockTower,
-    ArrowTower,
-    CannonTower,
+    public enum TowerType
+    {
+        BlockTower,
+        ArrowTower,
+        CannonTower,
+    }
 }

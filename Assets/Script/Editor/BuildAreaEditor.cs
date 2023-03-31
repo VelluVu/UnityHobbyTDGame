@@ -1,3 +1,4 @@
+using TheTD.Building;
 using UnityEditor;
 using UnityEngine;
 
@@ -12,22 +13,24 @@ public class BuildAreaEditor : Editor
     public override void OnInspectorGUI()
     {
         base.OnInspectorGUI();
-        var grid = (BuildArea)target;
+        var buildArea = (BuildArea)target;
+
         if(GUILayout.Button(CREATE_GRID_BUTTON_LABEL))
         {
-            grid.CreateGrid();
+            buildArea.CustomGrid.Create();
         }
         if(GUILayout.Button(UPDATE_GRID_BUTTON_LABEL))
         {
-            grid.UpdateGrid();
+            buildArea.CustomGrid.Create();
         }
         if(GUILayout.Button(SHOW_GRID_BUTTON_LABEL))
         {
-            grid.IsGridVisible = !grid.IsGridVisible;
+            buildArea.CustomGrid.IsVisible = !buildArea.CustomGrid.IsVisible;
         }
         if (GUILayout.Button(ADD_LISTENERS_BUTTON_LABEL))
         {
-            grid.AddListeners();
+            buildArea.AddListeners();
+            buildArea.CustomGrid.AddListeners();
         }
     }
 }

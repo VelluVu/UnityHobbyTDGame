@@ -4,7 +4,6 @@ using UnityEngine.EventSystems;
 
 public class ClickPosition : MonoBehaviour
 {
-    const string CLICK_POSITION_FORMAT = "Click on world position: {0}";
     public float maxClickDistance = 1000f;
     [SerializeField]private LayerMask hitMask;
 
@@ -19,13 +18,12 @@ public class ClickPosition : MonoBehaviour
         if(Input.GetMouseButtonDown(0))
         {
             if (IsPointerOverUI()) return;
-            Vector3 clickPosition = GetClickPostiionWithPhysicsRaycast(PlayerViewCamera, maxClickDistance, hitMask);
-            //Debug.LogFormat(CLICK_POSITION_FORMAT, clickPosition);
+            Vector3 clickPosition = GetClickPositionWithPhysicsRaycast(PlayerViewCamera, maxClickDistance, hitMask);
             OnClickPosition?.Invoke(clickPosition);
         }
     }
 
-    private static Vector3 GetClickPostiionWithPhysicsRaycast(Camera camera, float maxHitDistance, LayerMask hitMask)
+    private static Vector3 GetClickPositionWithPhysicsRaycast(Camera camera, float maxHitDistance, LayerMask hitMask)
     {
         Ray ray = camera.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit; 
@@ -41,7 +39,6 @@ public class ClickPosition : MonoBehaviour
     {
         Vector3 clickPosition = -Vector3.one;
 
-        //EFFICIENT WAY TO CHECK HEIGHT OF THE POSITION?
         Plane plane = new Plane(Vector3.up, 0f);
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 

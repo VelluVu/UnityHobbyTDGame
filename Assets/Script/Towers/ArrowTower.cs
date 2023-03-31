@@ -1,11 +1,12 @@
-using UnityEngine;
-
-public class ArrowTower : ProjectileTower
+namespace TheTD.Towers
 {
-    protected const string projectileName = "Arrow";
-
-    protected override string GetProjectileName()
+    public class ArrowTower : ProjectileTower
     {
-        return projectileName;
-    }   
+        protected const string projectileName = "Arrow";
+
+        protected override string GetProjectileName()
+        {
+            return projectileName;
+        }
+    }
 }

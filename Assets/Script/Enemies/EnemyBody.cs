@@ -1,6 +1,9 @@
 using UnityEngine;
 
-public class EnemyBody : MonoBehaviour
+namespace TheTD.Enemies
 {
-    virtual public Vector3 BodyCenter { get => transform.localPosition; }
+    public class EnemyBody : MonoBehaviour
+    {
+        virtual public Vector3 BodyCenter { get => transform.localPosition; }
+    }
 }

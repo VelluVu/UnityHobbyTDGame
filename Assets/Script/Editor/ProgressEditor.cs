@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(Progress))]
+[CustomEditor(typeof(TheTD.Core.GameProgress))]
 public class ProgressEditor : Editor
 {
     private const string RESET_TOWERS = "Reset Towers";
@@ -9,7 +9,7 @@ public class ProgressEditor : Editor
 
     public override void OnInspectorGUI()
     {
-        var progress = (Progress)target;
+        var progress = (TheTD.Core.GameProgress)target;
         if(GUILayout.Button(RESET_TOWERS))
         {
             progress.ResetTowersList();
