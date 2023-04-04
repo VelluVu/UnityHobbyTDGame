@@ -1,10 +1,10 @@
 using System.Collections;
 using TheTD.DamageSystem;
-using TheTD.Enemies;
 using UnityEngine;
 
 namespace TheTD.Projectiles
 {
+    [RequireComponent(typeof(DamageProperties))]
     public class Projectile : MonoBehaviour
     {
         public bool isCollided = false;
@@ -13,8 +13,9 @@ namespace TheTD.Projectiles
         public LayerMask hitLayerMask;
         [SerializeField] protected float timeToDeactivateAfterHit = 5f;
         [SerializeField] protected float projectileSpeed = 4f;
-        [SerializeField] protected Damage damage;
 
+        protected DamageProperties _damageProperties;
+        public DamageProperties DamageProperties { get => _damageProperties = _damageProperties != null ? _damageProperties : GetComponent<DamageProperties>(); }
         public Transform OriginalParent { get; private set; }
 
         private Rigidbody _rigidbody;
@@ -22,6 +23,11 @@ namespace TheTD.Projectiles
 
         private Collider _collider;
         public Collider Collider { get => _collider = _collider != null ? _collider : GetComponentInChildren<Collider>(); }
+
+        virtual protected void Start()
+        {
+            SetDamageType();
+        }
 
         virtual public void Launch(Vector3 startPosition, Vector3 velocity, Transform parent = null)
         {
@@ -38,6 +44,11 @@ namespace TheTD.Projectiles
             IsCollided = false;
             Rigidbody.velocity = velocity;
             StartCoroutine(DeactivateGameObjectInTime(timeToDeactivateAfterHit));
+        }
+
+        protected virtual void SetDamageType()
+        {
+            DamageProperties.damageType = new PhysicalDamageType();
         }
 
         protected IEnumerator DeactivateGameObjectInTime(float time)
@@ -76,9 +87,7 @@ namespace TheTD.Projectiles
 
         virtual protected void HitEnemy(Collision collision)
         {
-            damage.collision = collision;
-            damage.projectile = this;
-            collision.gameObject.GetComponentInParent<Enemy>().TakeDamage(damage);
+            collision.gameObject.GetComponentInParent<IDamageable>().TakeDamage(new Damage(DamageProperties));
         }
 
         virtual protected void SetIsCollided(bool value)

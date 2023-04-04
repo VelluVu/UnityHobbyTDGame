@@ -10,7 +10,7 @@ namespace TheTD.Building
         private const string BUILDING_GAME_OBJECT_NAME = "Building";
         private const string NAV_MESH_OBSTACLE_PREFAB_PATH = "Prefabs/NavMeshObstacle";
 
-        public int buildOnWave = 0;
+        [SerializeField]private int buildOnWave = 0;
         public bool IsNew { get; internal set; }
 
         private Tower tower;

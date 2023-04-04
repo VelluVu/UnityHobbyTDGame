@@ -1,4 +1,6 @@
+using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using TheTD.DamageSystem;
 using TheTD.Projectiles;
@@ -7,7 +9,7 @@ using UnityEngine.AI;
 
 namespace TheTD.Enemies
 {
-    public abstract class Enemy : MonoBehaviour
+    public abstract class Enemy : MonoBehaviour, IDamageable
     {
         //TODO:
         //should implement IDamageable interface
@@ -25,6 +27,7 @@ namespace TheTD.Enemies
         public float shrinkedAgentRadius = 0.1f;
 
         protected EnemyType type = EnemyType.Goblin;
+        protected List<IOvertimeEffect> OnGoingOvertimeEffects = new List<IOvertimeEffect>();
 
         protected bool _isReachedEnd = false;
         public bool IsReachedEnd { get => _isReachedEnd; private set => SetReachedEnd(value); }
@@ -68,6 +71,8 @@ namespace TheTD.Enemies
         public static event EnemyDelegate OnDeath;
         public static event EnemyDelegate OnPathBlocked;
 
+        public event Action<IDamageable, Damage> OnTakeDamage;
+
         virtual public void StartMoving()
         {
             ResetEnemy();
@@ -82,12 +87,6 @@ namespace TheTD.Enemies
             Agent.destination = Target.transform.position + Vector3.up * transform.position.y;
         }
 
-        virtual public void TakeDamage(Damage damage)
-        {
-            CurrentHealth -= damage.value;
-            CheckDeath(damage);
-        }
-
         virtual protected void Start()
         {
             AddListeners();
@@ -96,7 +95,7 @@ namespace TheTD.Enemies
 
         virtual protected void AddListeners()
         {
-
+            
         }
 
         virtual protected void OnTriggerEnter(Collider other)
@@ -113,7 +112,7 @@ namespace TheTD.Enemies
             }
         }
 
-        virtual protected void CheckDeath(Damage damage)
+        virtual protected void CheckDeath()
         {
             if (CurrentHealth > 0f) return;
             IsDead = true;
@@ -208,6 +207,45 @@ namespace TheTD.Enemies
             {
                 OnReachEnd?.Invoke(this);
             }
+        }
+
+        public void TakeDamage(Damage damage)
+        {
+            damage.OnDamageCalculated += OnTakeDamageCalculated;
+            OnTakeDamage?.Invoke(this, damage);
+        }
+
+        private void OnTakeDamageCalculated(Damage finalDamage)
+        {
+            finalDamage.OnDamageCalculated -= OnTakeDamageCalculated;
+            ReduceTheHealth(finalDamage.Value);
+            if (finalDamage.OvertimeEffects != null && finalDamage.OvertimeEffects.Any())
+            {
+                finalDamage.OvertimeEffects.ForEach(o => StartCoroutine(TakeOvertimeDamage(o)));
+            }
+        }
+
+        private void ReduceTheHealth(int value)
+        {
+            CurrentHealth -= value;
+            CheckDeath();
+        }
+
+        private IEnumerator TakeOvertimeDamage(IOvertimeEffect overtimeEffect)
+        {
+            OnGoingOvertimeEffects.Add(overtimeEffect);
+            for (int i = 0; i < overtimeEffect.NumberOfTicks; i++)
+            {        
+                ReduceTheHealth(overtimeEffect.DamageTick);
+                yield return new WaitForSeconds(overtimeEffect.Interval);
+            }
+            OnGoingOvertimeEffects.Remove(overtimeEffect);
+        }
+
+        public List<IDamageModifier> GetDamageModifiers()
+        {
+            //Get defensive damage reducing modifiers from the stats
+            return null;
         }
     }
 }

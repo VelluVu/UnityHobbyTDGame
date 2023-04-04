@@ -70,9 +70,9 @@ namespace TheTD.Spawning
             var waveState = FindWaveState(wave);
             if (waveState == null) return;
             waveState.RemoveEnemy(enemy, true);
-            OnEnemyReachEnd?.Invoke(waveState, enemy);
             AmountOFEnemiesReachedEndInLevel++;
             AmountOfEnemiesDestroyedInLevel++;
+            OnEnemyReachEnd?.Invoke(waveState, enemy);
             CheckTheGameStateConditions(waveState);
         }
 
