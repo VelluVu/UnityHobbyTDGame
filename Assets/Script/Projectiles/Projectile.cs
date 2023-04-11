@@ -5,7 +5,7 @@ using UnityEngine;
 namespace TheTD.Projectiles
 {
     [RequireComponent(typeof(DamageProperties))]
-    public class Projectile : MonoBehaviour
+    public abstract class Projectile : MonoBehaviour
     {
         public bool isCollided = false;
         public bool IsCollided { get => isCollided; set => SetIsCollided(value); }
@@ -16,6 +16,7 @@ namespace TheTD.Projectiles
 
         protected DamageProperties _damageProperties;
         public DamageProperties DamageProperties { get => _damageProperties = _damageProperties != null ? _damageProperties : GetComponent<DamageProperties>(); }
+
         public Transform OriginalParent { get; private set; }
 
         private Rigidbody _rigidbody;
@@ -26,7 +27,9 @@ namespace TheTD.Projectiles
 
         virtual protected void Start()
         {
-            SetDamageType();
+            SetProjectileBasedDamageType();
+            SetProjectileBasedOvertimeEffects();
+            SetProjectileBasedDamageModifiers();
         }
 
         virtual public void Launch(Vector3 startPosition, Vector3 velocity, Transform parent = null)
@@ -44,11 +47,6 @@ namespace TheTD.Projectiles
             IsCollided = false;
             Rigidbody.velocity = velocity;
             StartCoroutine(DeactivateGameObjectInTime(timeToDeactivateAfterHit));
-        }
-
-        protected virtual void SetDamageType()
-        {
-            DamageProperties.damageType = new PhysicalDamageType();
         }
 
         protected IEnumerator DeactivateGameObjectInTime(float time)
@@ -96,5 +94,8 @@ namespace TheTD.Projectiles
             isCollided = value;
         }
 
+        protected abstract void SetProjectileBasedDamageModifiers();
+        protected abstract void SetProjectileBasedOvertimeEffects();
+        protected abstract void SetProjectileBasedDamageType();
     }
 }

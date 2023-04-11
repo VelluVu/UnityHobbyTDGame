@@ -28,6 +28,7 @@ namespace TheTD.Enemies
 
         protected EnemyType type = EnemyType.Goblin;
         protected List<IOvertimeEffect> OnGoingOvertimeEffects = new List<IOvertimeEffect>();
+        protected List<Coroutine> damageTakeCoroutines = new List<Coroutine>();
 
         protected bool _isReachedEnd = false;
         public bool IsReachedEnd { get => _isReachedEnd; private set => SetReachedEnd(value); }
@@ -48,6 +49,8 @@ namespace TheTD.Enemies
         [SerializeField] protected int _goldValue = 1;
         virtual public int GoldValue { get => _goldValue; private set => _goldValue = value; }
 
+        private float dissolveDelay;
+
         protected NavMeshAgent _agent;
         virtual public NavMeshAgent Agent { get => _agent = _agent != null ? _agent : GetComponentInChildren<NavMeshAgent>(); }
 
@@ -64,6 +67,7 @@ namespace TheTD.Enemies
         public Rigidbody Rigidbody { get => _rigidBody = _rigidBody != null ? _rigidBody : GetComponent<Rigidbody>(); }
 
         protected EnemyBody _enemyBody;
+
         virtual public EnemyBody EnemyBody { get => _enemyBody = _enemyBody != null ? _enemyBody : GetComponentInChildren<EnemyBody>(); }
 
         public delegate void EnemyDelegate(Enemy enemy);
@@ -71,7 +75,8 @@ namespace TheTD.Enemies
         public static event EnemyDelegate OnDeath;
         public static event EnemyDelegate OnPathBlocked;
 
-        public event Action<IDamageable, Damage> OnTakeDamage;
+        public event Action<IDamageable, Damage> OnTakeRawDamage;
+        public event Action<IDamageable, int, bool> OnDamage;
 
         virtual public void StartMoving()
         {
@@ -89,13 +94,7 @@ namespace TheTD.Enemies
 
         virtual protected void Start()
         {
-            AddListeners();
             StartMoving();
-        }
-
-        virtual protected void AddListeners()
-        {
-            
         }
 
         virtual protected void OnTriggerEnter(Collider other)
@@ -104,6 +103,11 @@ namespace TheTD.Enemies
         }
 
         virtual protected void OnBodyCollision(Collider other)
+        {
+            ReachEnd(other);
+        }
+
+        private void ReachEnd(Collider other)
         {
             if (other.CompareTag(END_POINT_TAG))
             {
@@ -131,10 +135,10 @@ namespace TheTD.Enemies
             }
         }
 
-        virtual protected IEnumerator DestroySmoothly()
+        virtual protected IEnumerator DestroySmoothly(float delay)
         {
             float dissolveTime = 0f;
-            yield return new WaitForSeconds(2f); //give physics body time to take impact before dissolve
+            yield return new WaitForSeconds(delay); //give physics body time to take impact before dissolve
             ClearStuckProjectiles();
 
             while (dissolveTime <= 1f)
@@ -172,9 +176,16 @@ namespace TheTD.Enemies
 
             if (_isDead)
             {
-                StartCoroutine(DestroySmoothly());
+                StopDamageTakeCoroutines();
+                StartCoroutine(DestroySmoothly(IsReachedEnd ? 0f : dissolveDelay));
                 OnDeath?.Invoke(this);
             }
+        }
+
+        private void StopDamageTakeCoroutines()
+        {
+            damageTakeCoroutines.TrimExcess();
+            damageTakeCoroutines.ForEach(o => StopCoroutine(o));
         }
 
         virtual protected void ChangeAgentRadius(float newAgentRadius)
@@ -212,22 +223,25 @@ namespace TheTD.Enemies
         public void TakeDamage(Damage damage)
         {
             damage.OnDamageCalculated += OnTakeDamageCalculated;
-            OnTakeDamage?.Invoke(this, damage);
+            OnTakeRawDamage?.Invoke(this, damage);
         }
 
         private void OnTakeDamageCalculated(Damage finalDamage)
         {
             finalDamage.OnDamageCalculated -= OnTakeDamageCalculated;
-            ReduceTheHealth(finalDamage.Value);
+            ReduceTheHealth(finalDamage.Value, finalDamage.IsCritical);
+           
             if (finalDamage.OvertimeEffects != null && finalDamage.OvertimeEffects.Any())
-            {
-                finalDamage.OvertimeEffects.ForEach(o => StartCoroutine(TakeOvertimeDamage(o)));
+            {              
+                finalDamage.OvertimeEffects.ForEach(o => damageTakeCoroutines.Add(StartCoroutine(TakeOvertimeDamage(o))));
             }
         }
 
-        private void ReduceTheHealth(int value)
+        private void ReduceTheHealth(int value, bool isCritical = false, bool isDamageOvertime = false)
         {
             CurrentHealth -= value;
+            DamageNumberManager.Instance.SpawnFloatingDamageNumber(value, isCritical ? Color.red : Color.yellow, transform.position, EnemyBody.HeadPoint + transform.up, isCritical, isDamageOvertime);
+            OnDamage?.Invoke(this, value, isCritical);
             CheckDeath();
         }
 
@@ -236,10 +250,11 @@ namespace TheTD.Enemies
             OnGoingOvertimeEffects.Add(overtimeEffect);
             for (int i = 0; i < overtimeEffect.NumberOfTicks; i++)
             {        
-                ReduceTheHealth(overtimeEffect.DamageTick);
                 yield return new WaitForSeconds(overtimeEffect.Interval);
+                ReduceTheHealth(overtimeEffect.TickDamage, false, true);
             }
             OnGoingOvertimeEffects.Remove(overtimeEffect);
+            damageTakeCoroutines.TrimExcess();
         }
 
         public List<IDamageModifier> GetDamageModifiers()

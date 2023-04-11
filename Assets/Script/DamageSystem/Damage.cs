@@ -5,15 +5,16 @@ namespace TheTD.DamageSystem
 {
     public class Damage
     {
+        public bool IsCritical { get; set; }
         public int Value { get; set; }
-        public int CriticalChance { get; set; }
-        public int CriticalDamagePercent { get; set; }
+        public float CriticalChance { get; set; }
+        public float CriticalDamagePercent { get; set; }
         public IDamageType DamageType { get; set; }
         public List<IOvertimeEffect> OvertimeEffects { get; set; }
         public List<IDamageModifier> Modifiers { get; set; }
         public Action<Damage> OnDamageCalculated;
 
-        public Damage(int value, int criticalChange, int criticalDamagePercent, IDamageType damageType, List<IDamageModifier> modifiers, List<IOvertimeEffect> ovetimeEffects)
+        public Damage(int value, float criticalChange, float criticalDamagePercent, IDamageType damageType, List<IDamageModifier> modifiers, List<IOvertimeEffect> ovetimeEffects)
         {
             Value = value;
             CriticalChance = criticalChange;

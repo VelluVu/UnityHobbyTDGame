@@ -5,10 +5,11 @@ namespace TheTD.DamageSystem
         bool IsApplicableTo(IDamageType damageType);
         bool IsApplicableTo(IOvertimeEffect overtimeEffect);
         int Order { get; }
-        int FlatModifyValue { get; set; }
-        float PercentualModifyValue { get; set; }
-        string DamageTypeName { get; }
-        string OvertimeEffectName { get; }
-        Damage ModifyDamage(Damage damage);
+        int FlatModifyValue { get; }
+        float PercentualModifyValue { get; }
+        string ApplicableDamageTypeName { get; }
+        string ApplicableOvertimeEffectName { get; }
+        ModifyStatType ApplicableModifyStatType { get; }
+        Damage Modify(Damage damage);
     }
 }

@@ -9,8 +9,17 @@ namespace TheTD.Cameras
         public float zoomSpeed = 10f;
         public float borderThickness = 10f;
         public float zoomLimit = 10f;
+        public float zoomRatio = 1f;
         public float inputSensitivity = 0.5f;
         public Vector2 moveAreaSize = new Vector2(50f, 50f);
+
+        public delegate void OnCameraZoomDelegate(float zoomValue);
+        public static event OnCameraZoomDelegate OnCameraZoomChange;
+
+        private void Start()
+        {
+            OnCameraZoomChange?.Invoke(zoomRatio);
+        }
 
         private void Update()
         {

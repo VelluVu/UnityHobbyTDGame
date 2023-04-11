@@ -5,7 +5,7 @@ namespace TheTD.DamageSystem
 {
     public interface IDamageable
     {
-        event Action<IDamageable, Damage> OnTakeDamage;
+        event Action<IDamageable, Damage> OnTakeRawDamage;
         List<IDamageModifier> GetDamageModifiers();
         void TakeDamage(Damage damage);
     }

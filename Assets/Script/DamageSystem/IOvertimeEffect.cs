@@ -4,12 +4,13 @@ namespace TheTD.DamageSystem
 {
     public interface IOvertimeEffect
     {
-        int BaseValue { get; set; }
-        int OverAllDamage { get; set; }
-        int DamageTick { get; set; }
+        int BaseValue { get; }
+        int OverallDamage { get; }
+        int TickDamage { get; }
         int NumberOfTicks { get; }
-        float Duration { get; set; }
-        float Interval { get; set; }
+        float Chance { get; }
+        float Duration { get; }
+        float Interval { get; }
         string Name { get; }
         void ModifyOvertimeEffect(IDamageModifier modifier);
     }
