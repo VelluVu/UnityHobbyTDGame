@@ -1748,7 +1748,7 @@ GameObject:
   - component: {fileID: 488277397}
   - component: {fileID: 488277396}
   m_Layer: 0
-  m_Name: SpawnsControl
+  m_Name: SpawnersControl
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -238,10 +238,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 293f58a100972e34d9d22ef01743ea1a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  buildCost: 20
+  damageProperties:
+    baseDamage: 0
+    criticalChange: 0
+    criticalDamageMultiplier: 0
   isLockedToTarget: 0
+  minimumLockOnEnemyDotProductRatio: 0.95
   targetFindInterval: 1
-  turnSpeed: 5
+  turnSpeed: 10
   shootInterval: 1
   maxRange: 6
   debugDrawInterval: 1

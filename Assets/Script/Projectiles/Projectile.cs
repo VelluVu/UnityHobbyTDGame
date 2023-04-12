@@ -1,10 +1,10 @@
+using System;
 using System.Collections;
 using TheTD.DamageSystem;
 using UnityEngine;
 
 namespace TheTD.Projectiles
-{
-    [RequireComponent(typeof(DamageProperties))]
+{ 
     public abstract class Projectile : MonoBehaviour
     {
         public bool isCollided = false;
@@ -14,8 +14,7 @@ namespace TheTD.Projectiles
         [SerializeField] protected float timeToDeactivateAfterHit = 5f;
         [SerializeField] protected float projectileSpeed = 4f;
 
-        protected DamageProperties _damageProperties;
-        public DamageProperties DamageProperties { get => _damageProperties = _damageProperties != null ? _damageProperties : GetComponent<DamageProperties>(); }
+        [SerializeField] protected DamageProperties damageProperties;
 
         public Transform OriginalParent { get; private set; }
 
@@ -32,7 +31,7 @@ namespace TheTD.Projectiles
             SetProjectileBasedDamageModifiers();
         }
 
-        virtual public void Launch(Vector3 startPosition, Vector3 velocity, Transform parent = null)
+        virtual public void Launch(Vector3 startPosition, Vector3 velocity, Transform parent = null, DamageProperties towerDamageProperties = null)
         {
             transform.position = startPosition;
             transform.gameObject.SetActive(true);
@@ -40,6 +39,10 @@ namespace TheTD.Projectiles
             {
                 transform.SetParent(parent);
                 OriginalParent = parent;
+            }
+            if (towerDamageProperties != null)
+            {
+                damageProperties.Add(towerDamageProperties);
             }
             Collider.enabled = true;
             Rigidbody.useGravity = true;
@@ -85,7 +88,7 @@ namespace TheTD.Projectiles
 
         virtual protected void HitEnemy(Collision collision)
         {
-            collision.gameObject.GetComponentInParent<IDamageable>().TakeDamage(new Damage(DamageProperties));
+            collision.gameObject.GetComponentInParent<IDamageable>().TakeDamage(new Damage(damageProperties));
         }
 
         virtual protected void SetIsCollided(bool value)

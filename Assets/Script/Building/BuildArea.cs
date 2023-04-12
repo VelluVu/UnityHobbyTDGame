@@ -65,7 +65,7 @@ namespace TheTD.Building
         public void BuildOnSelectedSpot(TowerData tower)
         {
             if (selectedBuildSpot == null || selectedBuildSpot.IsOccupied) return;
-            if (!GameControl.Instance.Player.Gold.HasGoldForTower(tower.Tower.buildCost))
+            if (!GameControl.Instance.Player.Gold.HasGoldForTower(tower.Tower.BuildCost))
             {
                 Debug.Log(NOT_ENOUGH_GOLD_LOG_MESSAGE);
                 return;

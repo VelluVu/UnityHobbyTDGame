@@ -4,9 +4,9 @@ namespace TheTD.DamageSystem
     {
         public override string Name => "Physical";
 
-        public override Damage CalculateBaseDamage(Damage damage)
+        public override void CalculateBaseDamage(Damage damage)
         {
-            return damage;
+           
         }
     }
 }

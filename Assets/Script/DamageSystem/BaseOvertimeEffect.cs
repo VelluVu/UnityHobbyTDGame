@@ -51,7 +51,7 @@ namespace TheTD.DamageSystem
 
         private void CalculateTickDamage()
         {
-            TickDamage = Mathf.RoundToInt((float)OverallDamage / NumberOfTicks);
+            TickDamage = Mathf.FloorToInt((float)OverallDamage / NumberOfTicks);
         }
 
         private void ModifyCorrectStat(IDamageModifier modifier)
@@ -69,15 +69,15 @@ namespace TheTD.DamageSystem
 
         private void ModifyChance(IDamageModifier modifier)
         {
-            Chance += modifier.FlatModifyValue;
-            Chance += Chance > 0f ? (Chance * modifier.PercentualModifyValue) : 0f;
+            Chance += modifier.FlatValue;
+            Chance += Chance > 0f ? (Chance * modifier.PercentualMultiplier) : 0f;
         }
 
         private void ModifyDamage(IDamageModifier modifier)
         {
             OverallDamage = Mathf.RoundToInt(TickDamage * NumberOfTicks);
-            OverallDamage += modifier.FlatModifyValue;
-            OverallDamage += OverallDamage > 0 ? Mathf.RoundToInt(modifier.PercentualModifyValue * OverallDamage) : 0;
+            OverallDamage += modifier.FlatValue;
+            OverallDamage += OverallDamage > 0 ? Mathf.RoundToInt(modifier.PercentualMultiplier * OverallDamage) : 0;
         }
     }
 }

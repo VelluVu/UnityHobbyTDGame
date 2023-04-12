@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Linq;
+using TheTD.DamageSystem;
 using TheTD.Enemies;
 using TheTD.Spawning;
 using UnityEngine;
@@ -10,16 +12,15 @@ namespace TheTD.Towers
     {
         protected const string SHOOT_POINT_IS_NULL_LOG_FORMAT = "Shoot point is null, please assign shoot point transform to turret prefabs script";
 
-        public int buildCost = 5;
+        [SerializeField] protected DamageProperties damageProperties;
         [SerializeField] protected bool isLockedToTarget = false;
+        [SerializeField, Range(0f,1f)] protected float minimumLockOnEnemyDotProductRatio = 0.95f;
 
         [SerializeField] protected float targetFindInterval = 1f;
         [SerializeField] protected float turnSpeed = 2f;
         [SerializeField] protected float shootInterval = 1f;
         [SerializeField] protected float maxRange = 6f;
-
         [SerializeField] protected float debugDrawInterval = 1f;
-
         [SerializeField] protected Transform turretRotator;
         [SerializeField] protected Transform shootPoint;
         [SerializeField] protected Enemy target;
@@ -28,6 +29,9 @@ namespace TheTD.Towers
         protected float timeToNextDraw = 0f;
         protected float nextShootTime = 0f;
 
+        protected int _buildCost = 5;
+        public int BuildCost { get => _buildCost; }
+
         protected TowerData _towerData;
         virtual public TowerData TowerData { get => _towerData; set => _towerData = value; }
 
@@ -35,8 +39,14 @@ namespace TheTD.Towers
 
         virtual protected void Start()
         {
+            SetupDamageProperties();
             StartCoroutine(SearchTarget());
             StartCoroutine(TurretAI());
+        }
+
+        protected virtual void SetupDamageProperties()
+        {
+            
         }
 
         virtual protected IEnumerator TurretAI()
@@ -87,7 +97,7 @@ namespace TheTD.Towers
             DrawDebugLineInLoop(shootPoint.position, aimDirection + shootPoint.position, Color.red);
             float dotAbs = Mathf.Abs(dot);
 
-            if (dotAbs >= 0.95f)
+            if (dotAbs >= minimumLockOnEnemyDotProductRatio)
             {
                 return true;
             }

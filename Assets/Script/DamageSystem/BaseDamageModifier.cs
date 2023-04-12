@@ -5,8 +5,8 @@ namespace TheTD.DamageSystem
     public abstract class BaseDamageModifier : IDamageModifier
     {
         public abstract int Order { get; }
-        public abstract int FlatModifyValue { get; set; }
-        public abstract float PercentualModifyValue { get; set ; }
+        public abstract int FlatValue { get; set; }
+        public abstract float PercentualMultiplier { get; set ; }
         public abstract ModifyStatType ApplicableModifyStatType { get; }
 
         private string _applicableDamageTypeName = "None";
@@ -17,8 +17,8 @@ namespace TheTD.DamageSystem
       
         public BaseDamageModifier(int flatModifyValue, float percentualModifyValue, string applicableDamageTypeName = "None", string applicableOvertimeEffectName = "None")
         {
-            FlatModifyValue = flatModifyValue;
-            PercentualModifyValue = percentualModifyValue;
+            FlatValue = flatModifyValue;
+            PercentualMultiplier = percentualModifyValue;
             ApplicableDamageTypeName = applicableDamageTypeName;
             ApplicableOvertimeEffectName = applicableOvertimeEffectName;
         }
@@ -33,42 +33,41 @@ namespace TheTD.DamageSystem
             return overtimeEffect.Name == ApplicableOvertimeEffectName;
         }
 
-        public virtual Damage Modify(Damage damage) 
+        public virtual void Modify(Damage damage) 
         {
-            if (!IsApplicableTo(damage.DamageType)) return damage;
-            ModifyCorrectStat(damage);
-            return damage;
+            if (!IsApplicableTo(damage.DamageType)) return;
+            ModifyCorrectStat(damage);     
         }
 
         private Damage ModifyCorrectStat(Damage damage)
         {
             switch (ApplicableModifyStatType)
             {
-                case ModifyStatType.Damage: return ModifyDamage(damage);
+                case ModifyStatType.Damage: return ModifyDamageValue(damage);
                 case ModifyStatType.Chance: return ModifyCritChance(damage);
                 case ModifyStatType.CritDamage: return ModifyCritDamage(damage);
-                default: return ModifyDamage(damage);
+                default: return ModifyDamageValue(damage);
             }
         }
 
         private Damage ModifyCritDamage(Damage damage)
         {
-            damage.CriticalDamagePercent += FlatModifyValue;
-            damage.CriticalDamagePercent += damage.CriticalDamagePercent > 0 ? (damage.CriticalDamagePercent * PercentualModifyValue) : 0f;
+            damage.CriticalDamageMultiplier += FlatValue * 0.01f;
+            damage.CriticalDamageMultiplier += PercentualMultiplier;
             return damage;
         }
 
         private Damage ModifyCritChance(Damage damage)
         {
-            damage.CriticalChance += FlatModifyValue;
-            damage.CriticalChance += damage.CriticalChance > 0 ? (damage.CriticalChance * PercentualModifyValue) : 0f;
+            damage.CriticalChance += FlatValue;
+            damage.CriticalChance += damage.CriticalChance > 0 ? Mathf.RoundToInt(damage.CriticalChance * PercentualMultiplier) : 0;
             return damage;
         }
 
-        public virtual Damage ModifyDamage(Damage damage)
+        public virtual Damage ModifyDamageValue(Damage damage)
         {
-            damage.Value += FlatModifyValue;
-            damage.Value += damage.Value > 0 ? Mathf.RoundToInt(damage.Value * PercentualModifyValue) : 0;
+            damage.Value += FlatValue;
+            damage.Value += damage.Value > 0 ? Mathf.RoundToInt(damage.Value * PercentualMultiplier) : 0;
             return damage;
         }
 

@@ -45,12 +45,12 @@ namespace TheTD.Projectiles
 
         protected override void SetProjectileBasedOvertimeEffects()
         {
-            DamageProperties.overtimeEffects.Add(new BleedOvertimeEffect(DamageProperties.baseDamage, 6f, 3));
+            damageProperties.overtimeEffects.Add(new BleedOvertimeEffect(damageProperties.baseDamage, 3f, 3));
         }
 
         protected override void SetProjectileBasedDamageType()
         {
-            DamageProperties.damageType = new PhysicalDamageType();
+            damageProperties.damageType = new PhysicalDamageType();
         }
     }
 }

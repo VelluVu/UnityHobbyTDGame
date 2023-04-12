@@ -66,10 +66,16 @@ namespace TheTD.Spawning
 
         private void OnEnemyReachedEnd(Enemy enemy, int wave)
         {
+            HandleEnemyReachEnd(enemy, wave);
+        }
+
+        private void HandleEnemyReachEnd(Enemy enemy, int wave)
+        {
             if (!enemiesInLevel.Contains(enemy)) return;
             var waveState = FindWaveState(wave);
             if (waveState == null) return;
             waveState.RemoveEnemy(enemy, true);
+            enemiesInLevel.Remove(enemy);
             AmountOFEnemiesReachedEndInLevel++;
             AmountOfEnemiesDestroyedInLevel++;
             OnEnemyReachEnd?.Invoke(waveState, enemy);
@@ -77,6 +83,11 @@ namespace TheTD.Spawning
         }
 
         private void OnEnemyRemove(Enemy enemy, int wave)
+        {
+            HandleEnemyRemove(enemy, wave);
+        }
+
+        private void HandleEnemyRemove(Enemy enemy, int wave)
         {
             if (!enemiesInLevel.Contains(enemy)) return;
             var waveState = FindWaveState(wave);
@@ -89,6 +100,11 @@ namespace TheTD.Spawning
         }
 
         private void OnEnemyAdd(Enemy enemy, int wave)
+        {
+            HandleEnemyAdd(enemy, wave);
+        }
+
+        private void HandleEnemyAdd(Enemy enemy, int wave)
         {
             if (enemiesInLevel.Contains(enemy)) return;
             var waveState = FindWaveState(wave);

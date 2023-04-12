@@ -21,8 +21,23 @@ public class SecureRandomNumberGenerator
         return (int)(min + randomValueInRange);
     }
 
-    public bool RollPercent(double percentChance)
+    /// <summary>
+    /// Expects percent change not multiplier
+    /// Converts float into flatPercent, rolls random between 1,100.
+    /// Will be succesfull if the roll is smaller or equal to flatPercent
+    /// </summary>
+    /// <param name="percentChance"></param>
+    /// <returns></returns>
+    public bool RollPercent(float percentChance)
     {
+        if (percentChance <= 0f) return false;
+        if (percentChance >= 100f) return true;
+        int roll = GenerateRandomNumber(1, 100);
+        return roll <= percentChance;
+    }
+
+    public bool RollPercent(int percentChance)
+    {      
         if (percentChance <= 0) return false;
         if (percentChance >= 100) return true;
         int roll = GenerateRandomNumber(1, 100);

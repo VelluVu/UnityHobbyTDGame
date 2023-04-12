@@ -27,7 +27,7 @@ namespace TheTD.Players
 
         private void OnSellTower(Construction building)
         {
-            Add(building.IsNew ? building.Tower.buildCost : Mathf.FloorToInt(building.Tower.buildCost * 0.5f));
+            Add(building.IsNew ? building.Tower.BuildCost : Mathf.FloorToInt(building.Tower.BuildCost * 0.5f));
         }
 
         private void OnEnemyKill(WaveState waveState, Enemy enemy)
@@ -37,7 +37,7 @@ namespace TheTD.Players
 
         private void OnBuildTower(Construction building)
         {
-            Use(building.Tower.buildCost);
+            Use(building.Tower.BuildCost);
         }
 
         private void Use(int value)
