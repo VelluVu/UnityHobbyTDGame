@@ -12,7 +12,6 @@ namespace TheTD.Enemies
     public abstract class Enemy : MonoBehaviour, IDamageable
     {
         //TODO:
-        //should implement IDamageable interface
         //should have enemy stats scriptable object injected depending on enemy type, to remove the stat variables from here.
         //should have enemy state machine to control enemy pathfinding and change from MOVE to different states like STUN, or FLEEING, MOVEFAST, DEAD, STOP
         //path should never be blocked, make build area to handle bad wrong tower placements!
@@ -42,14 +41,16 @@ namespace TheTD.Enemies
         [SerializeField] protected float _maxHealth = 20f;
         virtual public float MaxHealth { get => _maxHealth; private set => _maxHealth = value; }
 
-        // enemies have only one type of damage for player base... so int is sufficient
         [SerializeField] protected int _damage = 1;
         virtual public int Damage { get => _damage; private set => _damage = value; }
 
         [SerializeField] protected int _goldValue = 1;
         virtual public int GoldValue { get => _goldValue; private set => _goldValue = value; }
 
-        private float dissolveDelay;
+        [SerializeField] protected float _experienceReward;
+        virtual public float ExperienceReward { get => _experienceReward; private set => _experienceReward = value; }
+
+        private float dissolveDelay = 1f;
 
         protected NavMeshAgent _agent;
         virtual public NavMeshAgent Agent { get => _agent = _agent != null ? _agent : GetComponentInChildren<NavMeshAgent>(); }
@@ -72,11 +73,13 @@ namespace TheTD.Enemies
 
         public delegate void EnemyDelegate(Enemy enemy);
         public static event EnemyDelegate OnReachEnd;
-        public static event EnemyDelegate OnDeath;
         public static event EnemyDelegate OnPathBlocked;
 
+        public delegate void EnemyDeathDelegate(Enemy enemy, Damage damage);
+        public static event EnemyDeathDelegate OnDeath;
+
         public event Action<IDamageable, Damage> OnTakeRawDamage;
-        public event Action<IDamageable, int, bool> OnDamage;
+        public event Action<IDamageable, Damage, IOvertimeEffect> OnDamage;
 
         virtual public void StartMoving()
         {
@@ -112,7 +115,6 @@ namespace TheTD.Enemies
             if (other.CompareTag(END_POINT_TAG))
             {
                 IsReachedEnd = true;
-                IsDead = true;
             }
         }
 
@@ -172,14 +174,7 @@ namespace TheTD.Enemies
             EnableEnemyPassThroughLayerWhenDead();
             StopEnemyWhenDead();
             ChangeAgentRadius(_isDead ? shrinkedAgentRadius : originalAgentRadius);
-            EnableEnemyBodyRotationWhenDead();
-
-            if (_isDead)
-            {
-                StopDamageTakeCoroutines();
-                StartCoroutine(DestroySmoothly(IsReachedEnd ? 0f : dissolveDelay));
-                OnDeath?.Invoke(this);
-            }
+            EnableEnemyBodyRotationWhenDead();         
         }
 
         private void StopDamageTakeCoroutines()
@@ -216,6 +211,8 @@ namespace TheTD.Enemies
             _isReachedEnd = value;
             if (_isReachedEnd)
             {
+                StopDamageTakeCoroutines();
+                StartCoroutine(DestroySmoothly(0f));
                 OnReachEnd?.Invoke(this);
             }
         }
@@ -229,29 +226,36 @@ namespace TheTD.Enemies
         private void OnTakeDamageCalculated(Damage finalDamage)
         {
             finalDamage.OnDamageCalculated -= OnTakeDamageCalculated;
-            ReduceTheHealth(finalDamage.Value, finalDamage.IsCritical);
+            ReduceTheHealth(finalDamage);
            
             if (finalDamage.OvertimeEffects != null && finalDamage.OvertimeEffects.Any())
             {              
-                finalDamage.OvertimeEffects.ForEach(o => damageTakeCoroutines.Add(StartCoroutine(TakeOvertimeDamage(o))));
+                finalDamage.OvertimeEffects.ForEach(o => damageTakeCoroutines.Add(StartCoroutine(TakeOvertimeDamage(o, finalDamage))));
             }
         }
 
-        private void ReduceTheHealth(int value, bool isCritical = false, bool isDamageOvertime = false)
+        private void ReduceTheHealth(Damage damage, IOvertimeEffect overtimeEffect = null)
         {
-            CurrentHealth -= value;
-            DamageNumberManager.Instance.SpawnFloatingDamageNumber(value, isCritical ? Color.red : Color.yellow, transform.position, EnemyBody.HeadPoint + transform.up, isCritical, isDamageOvertime);
-            OnDamage?.Invoke(this, value, isCritical);
+            CurrentHealth -= overtimeEffect == null ? damage.Value : overtimeEffect.TickDamage;
+            DamageNumberManager.Instance.SpawnFloatingDamageNumber(damage, transform.position + EnemyBody.HeadPointLocal, overtimeEffect);
+            OnDamage?.Invoke(this, damage, overtimeEffect);
             CheckDeath();
+
+            if (IsDead)
+            {
+                StopDamageTakeCoroutines();
+                StartCoroutine(DestroySmoothly(dissolveDelay));
+                OnDeath?.Invoke(this, damage);
+            }
         }
 
-        private IEnumerator TakeOvertimeDamage(IOvertimeEffect overtimeEffect)
+        private IEnumerator TakeOvertimeDamage(IOvertimeEffect overtimeEffect, Damage damage)
         {
             OnGoingOvertimeEffects.Add(overtimeEffect);
             for (int i = 0; i < overtimeEffect.NumberOfTicks; i++)
             {        
                 yield return new WaitForSeconds(overtimeEffect.Interval);
-                ReduceTheHealth(overtimeEffect.TickDamage, false, true);
+                ReduceTheHealth(damage, overtimeEffect);
             }
             OnGoingOvertimeEffects.Remove(overtimeEffect);
             damageTakeCoroutines.TrimExcess();

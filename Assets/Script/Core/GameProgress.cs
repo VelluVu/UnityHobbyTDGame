@@ -12,7 +12,7 @@ namespace TheTD.Core
 
         public bool devMode = false;
         private const string TOWERS_PATH = "Prefabs/Towers/";
-        public List<TowerData> towers = new List<TowerData>();
+        public List<TowerLoadData> towers = new List<TowerLoadData>();
 
         public delegate void ProgressDelegate();
         public static event ProgressDelegate OnTowerProgressChange;
@@ -42,7 +42,7 @@ namespace TheTD.Core
             }
         }
 
-        public List<TowerData> GetUnlockedTowers()
+        public List<TowerLoadData> GetUnlockedTowers()
         {
             return towers.FindAll(o => o.isUnlocked == true);
         }
@@ -60,7 +60,7 @@ namespace TheTD.Core
             OnTowerProgressChange?.Invoke();
         }
 
-        public TowerData FindTowerByType(TowerType type)
+        public TowerLoadData FindTowerByType(TowerType type)
         {
             return towers.Find(o => o.towerType == type);
         }
@@ -82,7 +82,7 @@ namespace TheTD.Core
             var gameObjects = Resources.LoadAll(TOWERS_PATH).ToList();
             gameObjects.ForEach(o =>
             {
-                TowerData tower = new TowerData((TowerType)Enum.Parse(typeof(TowerType), o.name));
+                TowerLoadData tower = new TowerLoadData((TowerType)Enum.Parse(typeof(TowerType), o.name));
                 tower.isUnlocked = false;
                 towers.Add(tower);
             });

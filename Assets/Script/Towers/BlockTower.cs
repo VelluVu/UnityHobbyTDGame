@@ -1,6 +1,6 @@
 namespace TheTD.Towers
 {
-    public class BlockTower : Tower
+    public class BlockTower : TowerBase
     {
         protected override void Start()
         {

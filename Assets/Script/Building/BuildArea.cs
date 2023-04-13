@@ -62,7 +62,7 @@ namespace TheTD.Building
             }
         }
 
-        public void BuildOnSelectedSpot(TowerData tower)
+        public void BuildOnSelectedSpot(TowerLoadData tower)
         {
             if (selectedBuildSpot == null || selectedBuildSpot.IsOccupied) return;
             if (!GameControl.Instance.Player.Gold.HasGoldForTower(tower.Tower.BuildCost))
@@ -96,7 +96,7 @@ namespace TheTD.Building
             buildings.TrimExcess();
         }
 
-        public Construction CreateBuilding(TowerData tower)
+        public Construction CreateBuilding(TowerLoadData tower)
         {
             GameObject buildingGO = new GameObject();
             var building = buildingGO.AddComponent<Construction>();

@@ -4,7 +4,7 @@ using UnityEngine;
 namespace TheTD.Towers
 {
     [System.Serializable]
-    public class TowerData
+    public class TowerLoadData
     {
         private const string PATH_TO_TOWER_PREFABS = "Prefabs/Towers/";
 
@@ -17,18 +17,18 @@ namespace TheTD.Towers
         private GameObject towerPrefab;
         public GameObject TowerPrefab { get => towerPrefab = towerPrefab != null ? towerPrefab : Resources.Load<GameObject>(PathToPrefab); }
 
-        private Tower tower;
-        public Tower Tower { get => GetTower(); }
+        private TowerBase tower;
+        public TowerBase Tower { get => GetTower(); }
 
-        private Tower GetTower()
+        private TowerBase GetTower()
         {
             if (tower != null) return tower;
-            tower = TowerPrefab.GetComponent<Tower>();
+            tower = TowerPrefab.GetComponent<TowerBase>();
             tower.TowerData = this;
             return tower;
         }
 
-        public TowerData(TowerType towerType)
+        public TowerLoadData(TowerType towerType)
         {
             this.towerType = towerType;
         }

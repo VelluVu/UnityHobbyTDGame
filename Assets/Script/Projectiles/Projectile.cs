@@ -1,20 +1,19 @@
-using System;
 using System.Collections;
 using TheTD.DamageSystem;
 using UnityEngine;
 
 namespace TheTD.Projectiles
-{ 
+{
     public abstract class Projectile : MonoBehaviour
     {
-        public bool isCollided = false;
-        public bool IsCollided { get => isCollided; set => SetIsCollided(value); }
-
         public LayerMask hitLayerMask;
-        [SerializeField] protected float timeToDeactivateAfterHit = 5f;
+        [SerializeField] protected float projectileLifeTime = 5f;
         [SerializeField] protected float projectileSpeed = 4f;
 
         [SerializeField] protected DamageProperties damageProperties;
+
+        public bool isCollided = false;
+        public bool IsCollided { get => isCollided; set => SetIsCollided(value); }
 
         public Transform OriginalParent { get; private set; }
 
@@ -31,32 +30,40 @@ namespace TheTD.Projectiles
             SetProjectileBasedDamageModifiers();
         }
 
-        virtual public void Launch(Vector3 startPosition, Vector3 velocity, Transform parent = null, DamageProperties towerDamageProperties = null)
+        virtual public void Launch(Vector3 startPosition, Vector3 velocity, Transform parent, DamageProperties towerDamageProperties = null)
+        {
+            StopAllCoroutines();
+            InitProjectileOnLaunch(startPosition, parent);   
+            SetupRigidBodyOnLaunch(velocity);
+            StartCoroutine(DeactivateInTime(projectileLifeTime));
+        }
+
+        protected virtual void InitProjectileOnLaunch(Vector3 startPosition, Transform parent, DamageProperties towerDamageProperties = null)
         {
             transform.position = startPosition;
             transform.gameObject.SetActive(true);
-            if (parent != null)
-            {
-                transform.SetParent(parent);
-                OriginalParent = parent;
-            }
+            OriginalParent = parent;
+            transform.SetParent(OriginalParent);
+            Collider.enabled = true;
+            IsCollided = false;
+
             if (towerDamageProperties != null)
             {
                 damageProperties.Add(towerDamageProperties);
             }
-            Collider.enabled = true;
-            Rigidbody.useGravity = true;
-            Rigidbody.isKinematic = false;
-            IsCollided = false;
-            Rigidbody.velocity = velocity;
-            StartCoroutine(DeactivateGameObjectInTime(timeToDeactivateAfterHit));
         }
 
-        protected IEnumerator DeactivateGameObjectInTime(float time)
+        protected virtual void SetupRigidBodyOnLaunch(Vector3 velocity)
+        {
+            Rigidbody.useGravity = true;
+            Rigidbody.isKinematic = false;
+            Rigidbody.velocity = velocity;
+        }
+
+        protected IEnumerator DeactivateInTime(float time)
         {
             yield return new WaitForSeconds(time);
-            transform.SetParent(OriginalParent);
-            transform.gameObject.SetActive(false);
+            ReadyForBool();
         }
 
         virtual protected void OnCollisionEnter(Collision collision)
@@ -76,7 +83,13 @@ namespace TheTD.Projectiles
         virtual public void ReadyForBool()
         {
             ResetScale();
-            transform.SetParent(OriginalParent);
+            //When closing the game, and this function is called after the destruction of the Original parent.
+            //it caused some nasty errors, as trying to set null object as parent.
+            //So the null check is needed here.
+            if (OriginalParent != null) 
+            {
+                transform.SetParent(OriginalParent);
+            }
             enabled = true;
             gameObject.SetActive(false);
         }
@@ -88,7 +101,7 @@ namespace TheTD.Projectiles
 
         virtual protected void HitEnemy(Collision collision)
         {
-            collision.gameObject.GetComponentInParent<IDamageable>().TakeDamage(new Damage(damageProperties));
+            collision.gameObject.GetComponentInParent<IDamageable>().TakeDamage(new Damage(damageProperties, OriginalParent));
         }
 
         virtual protected void SetIsCollided(bool value)

@@ -1,3 +1,5 @@
+using System;
+using TheTD.DamageSystem;
 using UnityEngine;
 
 public abstract class DamageNumber : MonoBehaviour
@@ -6,9 +8,12 @@ public abstract class DamageNumber : MonoBehaviour
     [SerializeField] private float fadeDuration = 0.5f;
     [SerializeField] private AnimationCurve fadeCurve;
 
+    [SerializeField] private float criticalTextSizeMultiplier = 1.2f;
+    [SerializeField] private float overtimeTextSizeMultiplier = 0.75f;
+    [SerializeField] private Color criticalColor = Color.red;
     private float age;
-
     private Camera _cam;
+
     public Camera Cam { get => _cam = _cam != null ? _cam : Camera.main; }
 
     protected virtual void Update()
@@ -26,15 +31,22 @@ public abstract class DamageNumber : MonoBehaviour
         SetAlpha(alpha);
     }
 
-    public virtual void InitDamageNumber(int amount, Color textColor, Vector3 position, Quaternion rotation, Transform parent, bool isCritical = false, bool isOvertime = false)
+    public virtual void InitDamageNumber(Damage damage, Vector3 position, Quaternion rotation, Transform parent, IOvertimeEffect overtimeEffect = null)
     {
-        transform.position = position;
+        transform.position = position + Vector3.up * 0.5f;
         transform.rotation = rotation;
         transform.SetParent(parent);
-        float sizeMultiplier = isCritical ? 1.2f : 1.0f;
-        sizeMultiplier = isOvertime ? sizeMultiplier * 0.75f : sizeMultiplier;
+        bool isOvertime = overtimeEffect != null;
+        int damageValue = isOvertime ? overtimeEffect.TickDamage : damage.Value;
+        CalculateElementScaleForDamage(damage.IsCritical, isOvertime);
+        var textColor = isOvertime ? damage.DamageType.Color : damage.IsCritical ? criticalColor : damage.DamageType.Color;
+        SetDamage(damageValue, textColor);
+    }
+
+    private void CalculateElementScaleForDamage(bool isCritical, bool isOvertime)
+    {
+        float sizeMultiplier = isOvertime ? 1.0f * overtimeTextSizeMultiplier : isCritical ? 1.0f * criticalTextSizeMultiplier : 1.0f;
         transform.localScale = Vector3.one * sizeMultiplier;
-        SetDamage(amount, textColor);
     }
 
     protected void LookAtCamera()

@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Linq;
 using TheTD.DamageSystem;
@@ -8,14 +7,16 @@ using UnityEngine;
 
 namespace TheTD.Towers
 {
-    public abstract class Tower : MonoBehaviour
+    public abstract class TowerBase : MonoBehaviour
     {
         protected const string SHOOT_POINT_IS_NULL_LOG_FORMAT = "Shoot point is null, please assign shoot point transform to turret prefabs script";
+
+        [SerializeField] protected int killCount = 0;
 
         [SerializeField] protected DamageProperties damageProperties;
         [SerializeField] protected bool isLockedToTarget = false;
         [SerializeField, Range(0f,1f)] protected float minimumLockOnEnemyDotProductRatio = 0.95f;
-
+        //Add Scriptable Object Hierarchy for stat loading?
         [SerializeField] protected float targetFindInterval = 1f;
         [SerializeField] protected float turnSpeed = 2f;
         [SerializeField] protected float shootInterval = 1f;
@@ -32,16 +33,39 @@ namespace TheTD.Towers
         protected int _buildCost = 5;
         public int BuildCost { get => _buildCost; }
 
-        protected TowerData _towerData;
-        virtual public TowerData TowerData { get => _towerData; set => _towerData = value; }
+        protected TowerLoadData _towerData;
+        virtual public TowerLoadData TowerData { get => _towerData; set => _towerData = value; }
 
         protected delegate Enemy TargetSearchDelegate(Enemy currentEnemy, Enemy previousEnemy);
 
         virtual protected void Start()
         {
+            AddListeners();
             SetupDamageProperties();
             StartCoroutine(SearchTarget());
             StartCoroutine(TurretAI());
+        }
+
+        virtual protected void OnDestroy()
+        {
+            RemoveListeners();
+        }
+
+        virtual protected void AddListeners()
+        {
+            Enemy.OnDeath += OnEnemyDeath;
+        }
+
+        virtual protected void RemoveListeners()
+        {
+            Enemy.OnDeath -= OnEnemyDeath;
+        }
+
+        private void OnEnemyDeath(Enemy enemy, Damage damage)
+        {
+            if (damage.Attacker != transform) return;
+            Debug.Log(this.name + " Killed " + enemy.name + " enemy!, gain " + enemy.ExperienceReward + " experience");
+            killCount++;
         }
 
         protected virtual void SetupDamageProperties()
@@ -67,7 +91,7 @@ namespace TheTD.Towers
 
         virtual protected Enemy AimAtTarget()
         {
-            var aimPosition = target.transform.position - shootPoint.transform.position + target.EnemyBody.BodyCenter;
+            var aimPosition = target.transform.position - shootPoint.transform.position + target.EnemyBody.BodyCenterLocal;
             var aimDirection = aimPosition.normalized;
             TurnTurretTowardsAimDirection(aimDirection);
             isLockedToTarget = IsLockedOnEnemy(aimDirection);

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using TheTD.DamageSystem;
 using TheTD.Enemies;
 using UnityEngine;
 
@@ -21,7 +22,7 @@ namespace TheTD.Spawning
 
         public int TotalSpawns { get => GetTotalSpawns(); }
 
-        internal delegate void EnemiesListDelegate(Enemy enemy, int wave);
+        internal delegate void EnemiesListDelegate(Enemy enemy, int wave, Damage damage = null);
         internal event EnemiesListDelegate OnNewEnemyAdd;
         internal event EnemiesListDelegate OnEnemyRemove;
         internal event EnemiesListDelegate OnEnemyReachedEnd;
@@ -58,9 +59,9 @@ namespace TheTD.Spawning
             Enemy.OnDeath += OnEnemyDie;
         }
 
-        virtual protected void OnEnemyDie(Enemy enemy)
+        virtual protected void OnEnemyDie(Enemy enemy, Damage damage)
         {
-            RemoveEnemy(enemy);
+            RemoveEnemy(enemy, damage);
         }
 
         virtual protected void OnEnemyReachEnd(Enemy enemy)
@@ -78,11 +79,11 @@ namespace TheTD.Spawning
             AddEnemy(enemy);
         }
 
-        virtual public void RemoveEnemy(Enemy enemy)
+        virtual public void RemoveEnemy(Enemy enemy, Damage damage)
         {
             if (!enemies.Contains(enemy)) return;
             enemies.Remove(enemy);
-            OnEnemyRemove?.Invoke(enemy, waveToParticipate);
+            OnEnemyRemove?.Invoke(enemy, waveToParticipate, damage);
         }
 
         virtual public void AddEnemy(Enemy enemy)

@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace TheTD.Towers
 {
-    public abstract class ProjectileTower : Tower
+    public abstract class ProjectileTower : TowerBase
     {
         protected const string PathToProjectile = "Prefabs/Projectiles/";
         protected const string defaultProjectileName = "Arrow";
@@ -44,7 +44,7 @@ namespace TheTD.Towers
 
         virtual protected ShootData CalculateShootData()
         {
-            currentShootData = CalculateDirectShootData(target.transform.position + target.EnemyBody.BodyCenter, shootPoint.position);
+            currentShootData = CalculateDirectShootData(target.transform.position + target.EnemyBody.BodyCenterLocal, shootPoint.position);
             return CalculatePredictedPosition(currentShootData);
         }
 

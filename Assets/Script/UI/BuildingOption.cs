@@ -21,8 +21,8 @@ namespace TheTD.UI
         private TextMeshProUGUI buttonTextMesh;
         public TextMeshProUGUI ButtonTextMesh { get => buttonTextMesh = buttonTextMesh != null ? buttonTextMesh : Button.GetComponentInChildren<TextMeshProUGUI>(); }
 
-        private TowerData tower;
-        public TowerData Tower { get => tower; private set => tower = value; }
+        private TowerLoadData tower;
+        public TowerLoadData Tower { get => tower; private set => tower = value; }
 
         public delegate void BuildingOptionDelegate(BuildingOption buildingOption);
         public static event BuildingOptionDelegate OnSelectTowerOption;
@@ -33,7 +33,7 @@ namespace TheTD.UI
             originalColor = BackGround.color;
         }
 
-        public void InitBuildingOption(TowerData tower)
+        public void InitBuildingOption(TowerLoadData tower)
         {
             Tower = tower;
             ButtonTextMesh.text = Tower.Name;

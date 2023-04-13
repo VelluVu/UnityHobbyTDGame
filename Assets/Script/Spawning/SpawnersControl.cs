@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using TheTD.DamageSystem;
 using TheTD.Enemies;
 using UnityEngine;
 
@@ -64,7 +65,7 @@ namespace TheTD.Spawning
             spawn.OnEnemyReachedEnd += OnEnemyReachedEnd;
         }
 
-        private void OnEnemyReachedEnd(Enemy enemy, int wave)
+        private void OnEnemyReachedEnd(Enemy enemy, int wave, Damage damage = null)
         {
             HandleEnemyReachEnd(enemy, wave);
         }
@@ -82,7 +83,7 @@ namespace TheTD.Spawning
             CheckTheGameStateConditions(waveState);
         }
 
-        private void OnEnemyRemove(Enemy enemy, int wave)
+        private void OnEnemyRemove(Enemy enemy, int wave, Damage damage = null)
         {
             HandleEnemyRemove(enemy, wave);
         }
@@ -99,7 +100,7 @@ namespace TheTD.Spawning
             CheckTheGameStateConditions(waveState);
         }
 
-        private void OnEnemyAdd(Enemy enemy, int wave)
+        private void OnEnemyAdd(Enemy enemy, int wave, Damage damage = null)
         {
             HandleEnemyAdd(enemy, wave);
         }

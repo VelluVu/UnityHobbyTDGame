@@ -61,7 +61,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1289a5dd54f7cc9438ffa1438f4b5c26, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isCollided: 0
   hitLayerMask:
     serializedVersion: 2
     m_Bits: 512
@@ -71,6 +70,15 @@ MonoBehaviour:
     baseDamage: 5
     criticalChange: 5
     criticalDamageMultiplier: 0.25
+    damageType:
+      id: 0
+    damageModifiers: []
+    overtimeEffects: []
+  isCollided: 0
+  references:
+    version: 1
+    00000000:
+      type: {class: , ns: , asm: }
 --- !u!1 &1915144653711455384
 GameObject:
   m_ObjectHideFlags: 0

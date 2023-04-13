@@ -46,7 +46,7 @@ namespace TheTD.Building
             BuildingPanel.OnBuildClick += OnBuildButtonClicked;
         }
 
-        private void OnBuildButtonClicked(TowerData towerData)
+        private void OnBuildButtonClicked(TowerLoadData towerData)
         {
             BuildOnSelectedArea(towerData);
         }
@@ -57,7 +57,7 @@ namespace TheTD.Building
             selectedBuildArea.SellOnSelectedSpot();
         }
 
-        public void BuildOnSelectedArea(TowerData towerData)
+        public void BuildOnSelectedArea(TowerLoadData towerData)
         {
             if (selectedBuildArea == null) return;
             selectedBuildArea.BuildOnSelectedSpot(towerData);

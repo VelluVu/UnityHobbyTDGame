@@ -8,30 +8,36 @@ namespace TheTD.DamageSystem
     public class Damage
     {
         public bool IsCritical { get; set; }
+        public int BaseValue { get; set; }
         public int Value { get; set; }
         public float CriticalChance { get; set; }
         public float CriticalDamageMultiplier { get; set; }
         public IDamageType DamageType { get; set; }
+        public Transform Attacker { get; set; }
         public List<IOvertimeEffect> OvertimeEffects { get; set; }
         public List<IDamageModifier> Modifiers { get; set; }
         public Action<Damage> OnDamageCalculated;
 
-        public Damage(int value, float criticalChange, float criticalDamageMultiplier, IDamageType damageType, List<IDamageModifier> modifiers, List<IOvertimeEffect> ovetimeEffects)
+        public Damage(int value, float criticalChange, float criticalDamageMultiplier, IDamageType damageType, Transform attacker, List<IDamageModifier> modifiers, List<IOvertimeEffect> ovetimeEffects)
         {
             Value = value;
+            BaseValue = Value;
             CriticalChance = criticalChange;
             CriticalDamageMultiplier = criticalDamageMultiplier;
             DamageType = damageType;
+            Attacker = attacker;
             OvertimeEffects = ovetimeEffects != null ? OvertimeEffects : new List<IOvertimeEffect>();
             Modifiers = modifiers != null ? modifiers : new List<IDamageModifier>();
         }
 
-        public Damage(DamageProperties properties)
+        public Damage(DamageProperties properties, Transform attacker)
         {
             Value = properties.baseDamage;
+            BaseValue = Value;
             CriticalChance = properties.criticalChange;
             CriticalDamageMultiplier = properties.criticalDamageMultiplier;
             DamageType = properties.damageType;
+            Attacker = attacker;
             OvertimeEffects = properties.overtimeEffects;
             Modifiers = properties.damageModifiers;
         }

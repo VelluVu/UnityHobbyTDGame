@@ -4,7 +4,8 @@ namespace TheTD.Enemies
 {
     public class EnemyBody : MonoBehaviour
     {
-        virtual public Vector3 BodyCenter { get => transform.localPosition; }
-        virtual public Vector3 HeadPoint { get => new Vector3(transform.localPosition.x, transform.localPosition.y + transform.localPosition.y, transform.localPosition.z); }
+        virtual public Vector3 BodyCenterLocal { get => transform.localPosition; }
+        virtual public Vector3 HeadPointLocal { get => new Vector3(transform.localPosition.x, BodyCenterLocal.y * 2f, transform.localPosition.z); }
+
     }
 }

@@ -169,6 +169,7 @@ MonoBehaviour:
   _maxHealth: 50
   _damage: 3
   _goldValue: 5
+  _experienceReward: 2
 --- !u!136 &147039096245844496
 CapsuleCollider:
   m_ObjectHideFlags: 0

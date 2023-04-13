@@ -24,9 +24,9 @@ namespace TheTD.UI
 
         public List<BuildingOption> buildingOptions = new List<BuildingOption>();
 
-        private TowerData selectedTower = null;
+        private TowerLoadData selectedTower = null;
 
-        public delegate void BuildingOptionDelegate(TowerData towerData);
+        public delegate void BuildingOptionDelegate(TowerLoadData towerData);
         public static event BuildingOptionDelegate OnBuildClick;
 
         private void Start()
@@ -68,14 +68,14 @@ namespace TheTD.UI
             }
         }
 
-        private void CheckBuildingOptions(List<TowerData> unlockedTowers)
+        private void CheckBuildingOptions(List<TowerLoadData> unlockedTowers)
         {
             var query = unlockedTowers.Where(o => !buildingOptions.Any(p => p.Tower.towerType == o.towerType));
             var towersNotInOptions = query.ToList();
             InstantiateBuildingOptions(towersNotInOptions);
         }
 
-        private void InstantiateBuildingOptions(List<TowerData> unlockedTowers)
+        private void InstantiateBuildingOptions(List<TowerLoadData> unlockedTowers)
         {
             unlockedTowers.ForEach(o =>
             {

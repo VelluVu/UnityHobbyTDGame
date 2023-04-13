@@ -1,3 +1,4 @@
+using TheTD.DamageSystem;
 using UnityEngine;
 
 public class DamageNumberManager : MonoBehaviour
@@ -27,10 +28,10 @@ public class DamageNumberManager : MonoBehaviour
         }
     }
 
-    public FloatingDamageNumber SpawnFloatingDamageNumber(int amount, Color textColor, Vector3 position, Vector3 offset, bool isCritical = false, bool isOvertime = false)
+    public FloatingDamageNumber SpawnFloatingDamageNumber(Damage damage, Vector3 position, IOvertimeEffect overtimeEffect = null)
     {
         FloatingDamageNumber damageNumber = DamageNumberPool.Spawn(FloatingDamageNumberPrefab);
-        damageNumber.InitDamageNumber(amount, textColor, position + offset, Quaternion.identity, transform, isCritical, isOvertime);
+        damageNumber.InitDamageNumber(damage, position, Quaternion.identity, transform, overtimeEffect);
         return damageNumber;
     }
 }

@@ -13,8 +13,8 @@ namespace TheTD.Building
         [SerializeField]private int buildOnWave = 0;
         public bool IsNew { get; internal set; }
 
-        private Tower tower;
-        public Tower Tower { get => tower; set => SetTower(value); }
+        private TowerBase tower;
+        public TowerBase Tower { get => tower; set => SetTower(value); }
 
         private BuildSpot buildSpot;
         public BuildSpot BuildSpot { get => buildSpot; private set => buildSpot = value; }
@@ -35,7 +35,7 @@ namespace TheTD.Building
             CheckBuildingStatus(wave);
         }
 
-        public void InitBuilding(BuildSpot buildSpot, TowerData towerData)
+        public void InitBuilding(BuildSpot buildSpot, TowerLoadData towerData)
         {
             IsNew = true;
             buildOnWave = GameControl.Instance.SpawnWave;
@@ -47,7 +47,7 @@ namespace TheTD.Building
             Tower = towerData.Tower;           
         }
 
-        private void SetTower(Tower value)
+        private void SetTower(TowerBase value)
         {
             if (tower == value) return;
             tower = value;
