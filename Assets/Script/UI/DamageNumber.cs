@@ -1,4 +1,4 @@
-using System;
+using System.Linq;
 using TheTD.DamageSystem;
 using UnityEngine;
 
@@ -6,6 +6,7 @@ public abstract class DamageNumber : MonoBehaviour
 {
     [SerializeField] private float duration = 1f;
     [SerializeField] private float fadeDuration = 0.5f;
+    [SerializeField] private float yOffset = 0.5f;
     [SerializeField] private AnimationCurve fadeCurve;
 
     [SerializeField] private float criticalTextSizeMultiplier = 1.2f;
@@ -33,13 +34,13 @@ public abstract class DamageNumber : MonoBehaviour
 
     public virtual void InitDamageNumber(Damage damage, Vector3 position, Quaternion rotation, Transform parent, IOvertimeEffect overtimeEffect = null)
     {
-        transform.position = position + Vector3.up * 0.5f;
+        transform.position = position + Vector3.up * yOffset;
         transform.rotation = rotation;
         transform.SetParent(parent);
         bool isOvertime = overtimeEffect != null;
-        int damageValue = isOvertime ? overtimeEffect.TickDamage : damage.Value;
+        int damageValue = isOvertime ? overtimeEffect.TickDamage : damage.DamageStat.RoundedValue;
         CalculateElementScaleForDamage(damage.IsCritical, isOvertime);
-        var textColor = isOvertime ? damage.DamageType.Color : damage.IsCritical ? criticalColor : damage.DamageType.Color;
+        var textColor = isOvertime ? damage.DamageTypes.First().Color : damage.IsCritical ? criticalColor : damage.DamageTypes.First().Color;
         SetDamage(damageValue, textColor);
     }
 

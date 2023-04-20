@@ -4,23 +4,26 @@ using UnityEngine;
 namespace TheTD.Towers
 {
     [System.Serializable]
-    public class TowerLoadData
+    public class TowerLoadData : ITowerLoadData
     {
         private const string PATH_TO_TOWER_PREFABS = "Prefabs/Towers/";
 
-        public bool isUnlocked = false;
-        public TowerType towerType = TowerType.BlockTower;
+        public bool _isUnlocked = false;
+        public bool IsUnlocked { get => _isUnlocked; set => _isUnlocked = value; }
 
-        public string PathToPrefab { get => PATH_TO_TOWER_PREFABS + towerType.ToString(); }
+        public string PathToPrefab { get => PATH_TO_TOWER_PREFABS + TowerType.ToString(); }
         public string Name { get => GetFormattedName(); }
 
         private GameObject towerPrefab;
         public GameObject TowerPrefab { get => towerPrefab = towerPrefab != null ? towerPrefab : Resources.Load<GameObject>(PathToPrefab); }
 
-        private TowerBase tower;
-        public TowerBase Tower { get => GetTower(); }
+        private ITower tower;
+        public ITower Tower { get => GetTower(); }
 
-        private TowerBase GetTower()
+        protected TowerType _towerType = TowerType.BlockTower;
+        public TowerType TowerType { get => _towerType; private set => _towerType = value; }
+
+        private ITower GetTower()
         {
             if (tower != null) return tower;
             tower = TowerPrefab.GetComponent<TowerBase>();
@@ -30,12 +33,12 @@ namespace TheTD.Towers
 
         public TowerLoadData(TowerType towerType)
         {
-            this.towerType = towerType;
+            TowerType = towerType;
         }
 
         private string GetFormattedName()
         {
-            var typeAsString = towerType.ToString();
+            var typeAsString = TowerType.ToString();
             if (typeAsString.Length <= 1) return typeAsString;
 
             var formattedName = typeAsString;

@@ -1,20 +1,28 @@
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using TheTD.DamageSystem;
 using UnityEngine;
 
 namespace TheTD.Projectiles
 {
-    public abstract class Projectile : MonoBehaviour
+    public abstract class Projectile : MonoBehaviour, IProjectile
     {
-        public LayerMask hitLayerMask;
-        [SerializeField] protected float projectileLifeTime = 5f;
-        [SerializeField] protected float projectileSpeed = 4f;
+        protected const string PATH_TO_PROJECTILE_STATS = "ScriptableObjects/Projectiles/Stats/";
 
-        [SerializeField] protected DamageProperties damageProperties;
+        public LayerMask hitLayerMask;
+        protected Damage _combinedDamage;
+        protected List<IOvertimeEffect> _overtimeEffects = new List<IOvertimeEffect>();
+        protected List<IModifier> _listOfModifiers = new List<IModifier>();
 
         public bool isCollided = false;
         public bool IsCollided { get => isCollided; set => SetIsCollided(value); }
 
+        protected ProjectileBaseStats _baseStats;
+        public ProjectileBaseStats BaseStats { get => GetBaseStats(); }
+
+        protected DynamicProjectileStats _stats;
+        public DynamicProjectileStats Stats { get => GetDynamicStats(); }
         public Transform OriginalParent { get; private set; }
 
         private Rigidbody _rigidbody;
@@ -23,22 +31,44 @@ namespace TheTD.Projectiles
         private Collider _collider;
         public Collider Collider { get => _collider = _collider != null ? _collider : GetComponentInChildren<Collider>(); }
 
+        public bool IsActive => gameObject.activeSelf;
+
         virtual protected void Start()
         {
-            SetProjectileBasedDamageType();
             SetProjectileBasedOvertimeEffects();
-            SetProjectileBasedDamageModifiers();
+            SetProjectileBasedDamageModifiers();         
         }
 
-        virtual public void Launch(Vector3 startPosition, Vector3 velocity, Transform parent, DamageProperties towerDamageProperties = null)
+        virtual public void Launch(Vector3 startPosition, Vector3 velocity, Transform parent, Damage damage)
         {
             StopAllCoroutines();
-            InitProjectileOnLaunch(startPosition, parent);   
+            CreateCombinedDamage(damage);
+            InitProjectileOnLaunch(startPosition, parent);
             SetupRigidBodyOnLaunch(velocity);
-            StartCoroutine(DeactivateInTime(projectileLifeTime));
+            StartCoroutine(DeactivateInTime(this.Stats.ProjectileLifeTime.Value));
         }
 
-        protected virtual void InitProjectileOnLaunch(Vector3 startPosition, Transform parent, DamageProperties towerDamageProperties = null)
+        private void CreateCombinedDamage(Damage damage)
+        {
+            var damageTypes = damage.DamageTypes.ToList();
+            damageTypes.Add(Stats.DamageType);
+            var overtimeEffects = damage.OvertimeEffects.ToList();
+            if (_overtimeEffects != null || _overtimeEffects.Any())
+            {               
+                overtimeEffects.AddRange(_overtimeEffects);
+            }
+
+            _combinedDamage = new Damage(
+                Stats.Damage.Value + damage.DamageStat.Value,
+                Stats.CriticalChange.Value + damage.CriticalChance.Value,
+                Stats.CriticalDamageMultiplier.Value + damage.CriticalDamageMultiplier.Value,
+                damageTypes,
+                overtimeEffects,
+                damage.Source
+                );
+        }
+
+        protected virtual void InitProjectileOnLaunch(Vector3 startPosition, Transform parent)
         {
             transform.position = startPosition;
             transform.gameObject.SetActive(true);
@@ -46,11 +76,6 @@ namespace TheTD.Projectiles
             transform.SetParent(OriginalParent);
             Collider.enabled = true;
             IsCollided = false;
-
-            if (towerDamageProperties != null)
-            {
-                damageProperties.Add(towerDamageProperties);
-            }
         }
 
         protected virtual void SetupRigidBodyOnLaunch(Vector3 velocity)
@@ -63,7 +88,7 @@ namespace TheTD.Projectiles
         protected IEnumerator DeactivateInTime(float time)
         {
             yield return new WaitForSeconds(time);
-            ReadyForBool();
+            ReadyForPool();
         }
 
         virtual protected void OnCollisionEnter(Collision collision)
@@ -80,9 +105,12 @@ namespace TheTD.Projectiles
 
         }
 
-        virtual public void ReadyForBool()
+        virtual public void ReadyForPool()
         {
             ResetScale();
+            //remove tower damage modifiers from the projectile damage
+            
+
             //When closing the game, and this function is called after the destruction of the Original parent.
             //it caused some nasty errors, as trying to set null object as parent.
             //So the null check is needed here.
@@ -101,7 +129,7 @@ namespace TheTD.Projectiles
 
         virtual protected void HitEnemy(Collision collision)
         {
-            collision.gameObject.GetComponentInParent<IDamageable>().TakeDamage(new Damage(damageProperties, OriginalParent));
+            collision.gameObject.GetComponentInParent<IDamageable>().TakeDamage(_combinedDamage);
         }
 
         virtual protected void SetIsCollided(bool value)
@@ -110,8 +138,22 @@ namespace TheTD.Projectiles
             isCollided = value;
         }
 
+        virtual protected ProjectileBaseStats GetBaseStats()
+        {
+            if (_baseStats != null) return _baseStats;
+            string fileName = name.Replace("(Clone)", "") + "Stats";
+            _baseStats = Resources.Load<ProjectileBaseStats>(PATH_TO_PROJECTILE_STATS + fileName);
+            return _baseStats;
+        }
+
+        virtual protected DynamicProjectileStats GetDynamicStats()
+        {
+            if (_stats != null) return _stats;
+            _stats = new DynamicProjectileStats(BaseStats);
+            return _stats;
+        }
+
         protected abstract void SetProjectileBasedDamageModifiers();
         protected abstract void SetProjectileBasedOvertimeEffects();
-        protected abstract void SetProjectileBasedDamageType();
     }
 }

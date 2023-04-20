@@ -13,7 +13,7 @@ public class SpawnersControlEditor : Editor
 
         if(GUILayout.Button(SPAWN_WITH_SELECTED_SPAWNERS))
         {
-            spawnsControl.SpawnWithSelectedSpawners(0);
+            spawnsControl.SpawnWithSelectedSpawners(spawnsControl.spawnWaveForTesting);
         }
 
         base.OnInspectorGUI();

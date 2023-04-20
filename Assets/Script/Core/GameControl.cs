@@ -16,8 +16,8 @@ namespace TheTD.Core
         private const string ALL_ON_GOING_WAVES_CLEARED_DEBUG_MESSAGE = "All on going waves cleared";
 
         public GameStyle gameStyle = GameStyle.Normal;
-        public int NextWave { get; private set; }
-        public int SpawnWave { get; private set; }
+        public int NextSpawnWave { get; private set; }
+        public int CurrentSpawnWave { get; private set; }
 
         public DamageCalculator DamageCalculator { get; private set; }
 
@@ -28,7 +28,7 @@ namespace TheTD.Core
         public delegate void GameDelegate(int wave);
         public event GameDelegate OnPlayerLose;
         public event GameDelegate OnStartWave;
-        public event GameDelegate OnWaveClear;
+        public event GameDelegate OnWaveAndEnemiesClear;
 
         private void Awake()
         {
@@ -55,16 +55,23 @@ namespace TheTD.Core
 
         public void Ready()
         {
-            SpawnWave = NextWave;
-            SpawnersControl.Instance.SpawnWithSelectedSpawners(SpawnWave);
-            NextWave = SpawnWave + 1;
-            OnStartWave?.Invoke(SpawnWave);
+            CurrentSpawnWave = NextSpawnWave;
+            NextSpawnWave = CurrentSpawnWave + 1;
+            SpawnersControl.Instance.SpawnWithSelectedSpawners(CurrentSpawnWave);
+            OnStartWave?.Invoke(CurrentSpawnWave);
+        }
+
+        public void SetSpawnWave(int wave)
+        {
+            if(CurrentSpawnWave == wave) return;    
+            CurrentSpawnWave = wave;
+            OnStartWave?.Invoke(CurrentSpawnWave);
         }
 
         private void LoseGame()
         {
             Debug.Log(PLAYER_LOSE_DEBUG_MESSAGE);
-            OnPlayerLose?.Invoke(SpawnWave);
+            OnPlayerLose?.Invoke(CurrentSpawnWave);
         }
 
         private void AddListers()
@@ -108,9 +115,9 @@ namespace TheTD.Core
             if (SpawnersControl.Instance.AreOnGoingWavesFinished())
             {
                 Debug.Log(ALL_ON_GOING_WAVES_CLEARED_DEBUG_MESSAGE);
-                OnWaveClear?.Invoke(SpawnWave);
+                OnWaveAndEnemiesClear?.Invoke(CurrentSpawnWave);
             }
-            SpawnWave = NextWave;
+            CurrentSpawnWave = NextSpawnWave;
         }     
     }
 }

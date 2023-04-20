@@ -1,4 +1,3 @@
-using TheTD.Towers;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -21,8 +20,8 @@ namespace TheTD.UI
         private TextMeshProUGUI buttonTextMesh;
         public TextMeshProUGUI ButtonTextMesh { get => buttonTextMesh = buttonTextMesh != null ? buttonTextMesh : Button.GetComponentInChildren<TextMeshProUGUI>(); }
 
-        private TowerLoadData tower;
-        public TowerLoadData Tower { get => tower; private set => tower = value; }
+        private ITowerLoadData towerLoadData;
+        public ITowerLoadData TowerLoadData { get => towerLoadData; private set => towerLoadData = value; }
 
         public delegate void BuildingOptionDelegate(BuildingOption buildingOption);
         public static event BuildingOptionDelegate OnSelectTowerOption;
@@ -33,10 +32,10 @@ namespace TheTD.UI
             originalColor = BackGround.color;
         }
 
-        public void InitBuildingOption(TowerLoadData tower)
+        public void InitBuildingOption(ITowerLoadData tower)
         {
-            Tower = tower;
-            ButtonTextMesh.text = Tower.Name;
+            TowerLoadData = tower;
+            ButtonTextMesh.text = TowerLoadData.Name;
         }
 
         public void OnClickBuildingOption()

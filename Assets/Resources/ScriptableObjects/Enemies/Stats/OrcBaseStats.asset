@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76f48b639939df34295b05d2f3ef3077, type: 3}
+  m_Name: OrcBaseStats
+  m_EditorClassIdentifier: 
+  _maxHealth:
+    BaseValue: 6
+    _statFlags: 2
+  _damage:
+    BaseValue: 2
+    _statFlags: 4
+  _armor:
+    BaseValue: 0
+    _statFlags: 8
+  _fireMagicResistance:
+    BaseValue: 0
+    _statFlags: 16
+  _coldMagicResistance:
+    BaseValue: 0
+    _statFlags: 32
+  _poisonMagicResistance:
+    BaseValue: 0
+    _statFlags: 64
+  _blackMagicResistance:
+    BaseValue: 0
+    _statFlags: 128
+  _goldReward:
+    BaseValue: 2
+    _statFlags: 16384
+  _experienceReward:
+    BaseValue: 2
+    _statFlags: 32768
+  _moveSpeed:
+    BaseValue: 0.5
+    _statFlags: 1024
+  _turnSpeed:
+    BaseValue: 90
+    _statFlags: 2048
+  _acceleration:
+    BaseValue: 100
+    _statFlags: 8192

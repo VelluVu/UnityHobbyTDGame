@@ -49,7 +49,7 @@ public class Gametime : MonoBehaviour
         timeCoroutine = TimeCoroutine();
         GameControl.Instance.OnPlayerLose += OnPlayerLose;
         GameControl.Instance.OnStartWave += OnStartWave;
-        GameControl.Instance.OnWaveClear += OnWaveClear;
+        GameControl.Instance.OnWaveAndEnemiesClear += OnWaveClear;
     }
 
     private void OnWaveClear(int wave)

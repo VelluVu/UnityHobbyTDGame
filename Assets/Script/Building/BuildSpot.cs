@@ -12,8 +12,8 @@ namespace TheTD.Building
         public Vector3 TopLeftCornerPositionInWorld { get => new Vector3(BottomLeftPositionInWorld.x, BottomLeftPositionInWorld.y, BottomLeftPositionInWorld.z + Size); }
         public float Height { get => CenterPositionInWorld.y + Size; }
    
-        private Construction building;
-        public Construction Building { get => building; set => building = value; }
+        private Construction _construction;
+        public Construction Construction { get => _construction; set => _construction = value; }
 
         [SerializeField] private bool isOccupied;
         public bool IsOccupied { get => isOccupied; set => isOccupied = value; }

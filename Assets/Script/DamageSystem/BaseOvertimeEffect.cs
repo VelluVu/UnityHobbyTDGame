@@ -1,12 +1,11 @@
+using TheTD.StatSystem;
 using UnityEngine;
 
 namespace TheTD.DamageSystem
 {
     public abstract class BaseOvertimeEffect : IOvertimeEffect
     {
-        public virtual int BaseValue { get; }
-
-        public virtual int OverallDamage { get; private set; }
+        public virtual Stat Damage { get; }
 
         public virtual int TickDamage { get; private set; }
 
@@ -20,64 +19,39 @@ namespace TheTD.DamageSystem
 
         public virtual string Name { get => "None"; }
 
-        public BaseOvertimeEffect(int overallDamage, float duration, int howManyTicks, float chance = 1f)
+        protected DamageType _type;
+        public virtual DamageType Type { get => _type; private set => _type = value; }
+
+        public BaseOvertimeEffect(DamageType type, float overallDamage, float duration, int ticks, float chance = 1f)
         {
+            Type = type;
             Duration = duration;
-            NumberOfTicks = howManyTicks;
-            OverallDamage = overallDamage;
+            NumberOfTicks = ticks;
+            Damage = new Stat(overallDamage, StatFlags.Damage);
             Chance = chance;
             Interval = Duration / NumberOfTicks;
             CalculateTickDamage();
-            BaseValue = OverallDamage;
         }
 
-        public BaseOvertimeEffect(int tickDamage, int ticks, float duration, float chance = 1f)
+        public BaseOvertimeEffect(DamageType type, int tickDamage, int ticks, float duration, float chance = 1f)
         {
+            Type = type;
             Duration = duration;
             NumberOfTicks = ticks;
             TickDamage = tickDamage;
             Chance = chance;
             Interval = Duration / NumberOfTicks;
-            OverallDamage = TickDamage * NumberOfTicks;
-            BaseValue = OverallDamage;
-        }
-
-        public virtual void ModifyOvertimeEffect(IDamageModifier modifier)
-        {
-            if (!modifier.IsApplicableTo(this)) return;
-            ModifyCorrectStat(modifier);
-            CalculateTickDamage();       
+            Damage = new Stat(TickDamage * NumberOfTicks, StatFlags.Damage);
         }
 
         private void CalculateTickDamage()
         {
-            TickDamage = Mathf.FloorToInt((float)OverallDamage / NumberOfTicks);
-        }
+            TickDamage = Mathf.FloorToInt((float)Damage.Value / NumberOfTicks);
 
-        private void ModifyCorrectStat(IDamageModifier modifier)
-        {
-            switch (modifier.ApplicableModifyStatType)
+            if (TickDamage <= 0)
             {
-                case ModifyStatType.Damage:
-                    ModifyDamage(modifier);
-                    break;
-                case ModifyStatType.Chance:
-                    ModifyChance(modifier);
-                    break;
+                TickDamage = 1;
             }
-        }
-
-        private void ModifyChance(IDamageModifier modifier)
-        {
-            Chance += modifier.FlatValue;
-            Chance += Chance > 0f ? (Chance * modifier.PercentualMultiplier) : 0f;
-        }
-
-        private void ModifyDamage(IDamageModifier modifier)
-        {
-            OverallDamage = Mathf.RoundToInt(TickDamage * NumberOfTicks);
-            OverallDamage += modifier.FlatValue;
-            OverallDamage += OverallDamage > 0 ? Mathf.RoundToInt(modifier.PercentualMultiplier * OverallDamage) : 0;
         }
     }
 }

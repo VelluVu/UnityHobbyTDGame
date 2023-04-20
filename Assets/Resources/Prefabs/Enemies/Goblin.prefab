@@ -71,11 +71,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   originalAgentRadius: 0.3
   shrinkedAgentRadius: 0.001
+  type: 0
+  _stats:
+    _maxHealth: 15
+    _damage: 1
+    _goldReward: 1
+    _experienceReward: 1
   _currentHealth: 20
-  _maxHealth: 20
-  _damage: 1
-  _goldValue: 1
-  _experienceReward: 1
 --- !u!54 &3361672626509898193
 Rigidbody:
   m_ObjectHideFlags: 0

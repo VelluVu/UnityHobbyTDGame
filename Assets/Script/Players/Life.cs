@@ -27,7 +27,7 @@ namespace TheTD.Players
 
         private void OnEnemyReachedEnd(WaveState waveState, Enemy enemy)
         {
-            Remove(enemy.Damage);
+            Remove(enemy.Stats.Damage.RoundedValue);
         }
 
         private void Remove(int value)

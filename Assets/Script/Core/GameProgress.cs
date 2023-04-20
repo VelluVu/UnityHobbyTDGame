@@ -12,7 +12,7 @@ namespace TheTD.Core
 
         public bool devMode = false;
         private const string TOWERS_PATH = "Prefabs/Towers/";
-        public List<TowerLoadData> towers = new List<TowerLoadData>();
+        [SerializeReference]public List<ITowerLoadData> towerLoadDatas = new List<ITowerLoadData>();
 
         public delegate void ProgressDelegate();
         public static event ProgressDelegate OnTowerProgressChange;
@@ -20,6 +20,7 @@ namespace TheTD.Core
         private void Awake()
         {
             CheckSingleton();
+            InitTowers();
         }
 
         private void CheckSingleton()
@@ -42,27 +43,27 @@ namespace TheTD.Core
             }
         }
 
-        public List<TowerLoadData> GetUnlockedTowers()
+        public List<ITowerLoadData> GetUnlockedTowers()
         {
-            return towers.FindAll(o => o.isUnlocked == true);
+            return towerLoadDatas.FindAll(o => o.IsUnlocked == true);
         }
 
         public void UnlockAllTowers()
         {
-            towers.ForEach(o => o.isUnlocked = true);
+            towerLoadDatas.ForEach(o => o.IsUnlocked = true);
             OnTowerProgressChange?.Invoke();
         }
 
         public void UnlockTower(TowerType type)
         {
-            var tower = FindTowerByType(type);
-            tower.isUnlocked = true;
+            var towerLoadData = FindTowerByType(type);
+            towerLoadData.IsUnlocked = true;
             OnTowerProgressChange?.Invoke();
         }
 
-        public TowerLoadData FindTowerByType(TowerType type)
+        public ITowerLoadData FindTowerByType(TowerType type)
         {
-            return towers.Find(o => o.towerType == type);
+            return towerLoadDatas.Find(o => o.TowerType == type);
         }
 
         private void Reset()
@@ -72,19 +73,19 @@ namespace TheTD.Core
 
         public void ResetTowersList()
         {
-            towers.Clear();
+            towerLoadDatas.Clear();
             InitTowers();
         }
 
         private void InitTowers()
         {
-            if (towers.Any()) return;
+            if (towerLoadDatas.Any()) return;
             var gameObjects = Resources.LoadAll(TOWERS_PATH).ToList();
             gameObjects.ForEach(o =>
             {
                 TowerLoadData tower = new TowerLoadData((TowerType)Enum.Parse(typeof(TowerType), o.name));
-                tower.isUnlocked = false;
-                towers.Add(tower);
+                tower.IsUnlocked = false;
+                towerLoadDatas.Add(tower);
             });
             OnTowerProgressChange?.Invoke();
         }

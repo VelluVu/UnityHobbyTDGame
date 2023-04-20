@@ -1,7 +1,7 @@
 using System;
 using System.Security.Cryptography;
 
-public class SecureRandomNumberGenerator
+public class SecureRandomNumberGenerator : IRandomGenerator
 {
     private readonly RNGCryptoServiceProvider rng;
 

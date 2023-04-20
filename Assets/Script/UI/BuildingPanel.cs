@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using TheTD.Core;
-using TheTD.Towers;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -24,9 +22,9 @@ namespace TheTD.UI
 
         public List<BuildingOption> buildingOptions = new List<BuildingOption>();
 
-        private TowerLoadData selectedTower = null;
+        private ITowerLoadData selectedTower = null;
 
-        public delegate void BuildingOptionDelegate(TowerLoadData towerData);
+        public delegate void BuildingOptionDelegate(ITowerLoadData towerData);
         public static event BuildingOptionDelegate OnBuildClick;
 
         private void Start()
@@ -68,14 +66,14 @@ namespace TheTD.UI
             }
         }
 
-        private void CheckBuildingOptions(List<TowerLoadData> unlockedTowers)
+        private void CheckBuildingOptions(List<ITowerLoadData> unlockedTowers)
         {
-            var query = unlockedTowers.Where(o => !buildingOptions.Any(p => p.Tower.towerType == o.towerType));
+            var query = unlockedTowers.Where(o => !buildingOptions.Any(p => p.TowerLoadData.TowerType == o.TowerType));
             var towersNotInOptions = query.ToList();
             InstantiateBuildingOptions(towersNotInOptions);
         }
 
-        private void InstantiateBuildingOptions(List<TowerLoadData> unlockedTowers)
+        private void InstantiateBuildingOptions(List<ITowerLoadData> unlockedTowers)
         {
             unlockedTowers.ForEach(o =>
             {
@@ -88,7 +86,7 @@ namespace TheTD.UI
 
         private void OnSelectTowerOption(BuildingOption buildingOption)
         {
-            selectedTower = buildingOption.Tower;
+            selectedTower = buildingOption.TowerLoadData;
             buildingOptions.ForEach(o => o.IsSelected = false);
             buildingOption.IsSelected = true;
         }

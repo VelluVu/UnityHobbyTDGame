@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using TheTD.Towers;
 using TheTD.UI;
 using UnityEngine;
 
@@ -46,7 +45,7 @@ namespace TheTD.Building
             BuildingPanel.OnBuildClick += OnBuildButtonClicked;
         }
 
-        private void OnBuildButtonClicked(TowerLoadData towerData)
+        private void OnBuildButtonClicked(ITowerLoadData towerData)
         {
             BuildOnSelectedArea(towerData);
         }
@@ -57,7 +56,7 @@ namespace TheTD.Building
             selectedBuildArea.SellOnSelectedSpot();
         }
 
-        public void BuildOnSelectedArea(TowerLoadData towerData)
+        public void BuildOnSelectedArea(ITowerLoadData towerData)
         {
             if (selectedBuildArea == null) return;
             selectedBuildArea.BuildOnSelectedSpot(towerData);

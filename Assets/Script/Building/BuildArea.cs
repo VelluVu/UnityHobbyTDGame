@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using TheTD.Core;
-using TheTD.Towers;
 using UnityEngine;
 
 namespace TheTD.Building
@@ -22,7 +21,7 @@ namespace TheTD.Building
         public delegate void BuildAreaDelegate(BuildArea buildArea);
         public static event BuildAreaDelegate OnBuildAreaClicked;
 
-        public delegate void BuildDelegate(Construction building);
+        public delegate void BuildDelegate(Construction construction);
         public static event BuildDelegate OnBuild;
         public static event BuildDelegate OnSell;
         public static event BuildDelegate OnBuildingRemove;
@@ -62,46 +61,47 @@ namespace TheTD.Building
             }
         }
 
-        public void BuildOnSelectedSpot(TowerLoadData tower)
+        public void BuildOnSelectedSpot(ITowerLoadData towerLoadData)
         {
             if (selectedBuildSpot == null || selectedBuildSpot.IsOccupied) return;
-            if (!GameControl.Instance.Player.Gold.HasGoldForTower(tower.Tower.BuildCost))
+            if (!GameControl.Instance.Player.Gold.HasGoldForTower(towerLoadData.Tower.BuildCost))
             {
                 Debug.Log(NOT_ENOUGH_GOLD_LOG_MESSAGE);
                 return;
             }
             selectedBuildSpot.IsOccupied = true;
             OnSelectedBuildSpotChange?.Invoke(selectedBuildSpot);
-            var building = CreateBuilding(tower);
-            buildings.Add(building);
-            OnBuild?.Invoke(building);
+            var construction = CreateBuilding(towerLoadData);
+            selectedBuildSpot.Construction = construction;
+            buildings.Add(construction);
+            OnBuild?.Invoke(construction);
         }
 
         public void SellOnSelectedSpot()
         {
             if (selectedBuildSpot == null) return;
-            if (selectedBuildSpot.Building == null) return;
-            var building = selectedBuildSpot.Building;
-            DestroyBuilding(building);
-            OnSell?.Invoke(selectedBuildSpot.Building);
+            if (selectedBuildSpot.Construction == null) return;
+            var construction = selectedBuildSpot.Construction;
+            DestroyBuilding(construction);
+            OnSell?.Invoke(selectedBuildSpot.Construction);
         }
 
-        public void DestroyBuilding(Construction building)
+        public void DestroyBuilding(Construction construction)
         {
-            buildings.Remove(building);
-            OnBuildingRemove?.Invoke(building);
-            building.BuildSpot.IsOccupied = false;
+            buildings.Remove(construction);
+            OnBuildingRemove?.Invoke(construction);
+            construction.BuildSpot.IsOccupied = false;
             OnSelectedBuildSpotChange?.Invoke(selectedBuildSpot);
-            Destroy(building.gameObject);
+            Destroy(construction.gameObject);
             buildings.TrimExcess();
         }
 
-        public Construction CreateBuilding(TowerLoadData tower)
+        public Construction CreateBuilding(ITowerLoadData towerLoadData)
         {
-            GameObject buildingGO = new GameObject();
-            var building = buildingGO.AddComponent<Construction>();
-            building.InitBuilding(selectedBuildSpot, tower);
-            return building;
+            GameObject constructionGO = new GameObject();
+            var construction = constructionGO.AddComponent<Construction>();
+            construction.InitBuilding(selectedBuildSpot, towerLoadData);
+            return construction;
         }     
     }
 }

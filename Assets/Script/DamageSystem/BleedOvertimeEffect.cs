@@ -4,13 +4,12 @@ namespace TheTD.DamageSystem
     {
         public override string Name => "Bleed";
 
-        public BleedOvertimeEffect(int overallDamage, float duration, int howManyTicks) : base(overallDamage, duration, howManyTicks)
+        public BleedOvertimeEffect(DamageType type, float overallDamage, float duration, int ticks, float chance = 1) : base(type, overallDamage, duration, ticks, chance)
         {
         }
 
-        public BleedOvertimeEffect(int tickDamage, int ticks, float duration) : base(tickDamage, ticks, duration)
+        public BleedOvertimeEffect(DamageType type, int tickDamage, int ticks, float duration, float chance = 1) : base(type, tickDamage, ticks, duration, chance)
         {
         }
-
     }
 }

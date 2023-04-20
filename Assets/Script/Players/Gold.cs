@@ -32,7 +32,7 @@ namespace TheTD.Players
 
         private void OnEnemyKill(WaveState waveState, Enemy enemy)
         {
-            Add(enemy.GoldValue);
+            Add(Mathf.RoundToInt(enemy.BaseStats.GoldReward.Value));
         }
 
         private void OnBuildTower(Construction building)

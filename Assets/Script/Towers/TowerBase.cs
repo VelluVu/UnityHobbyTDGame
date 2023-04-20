@@ -1,76 +1,70 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using TheTD.DamageSystem;
-using TheTD.Enemies;
 using TheTD.Spawning;
 using UnityEngine;
 
 namespace TheTD.Towers
 {
-    public abstract class TowerBase : MonoBehaviour
+    public abstract class TowerBase : MonoBehaviour, ITower
     {
         protected const string SHOOT_POINT_IS_NULL_LOG_FORMAT = "Shoot point is null, please assign shoot point transform to turret prefabs script";
+        protected const string PATH_TO_BASE_STATS = "ScriptableObjects/Towers/Stats/";
+        protected const string ERROR_GET_TURRET_ROTATOR = "Unable to get turret rotator from the children, override getter, or make sure the shoot point game object is named: TurretRotator";
+        protected const string ERROR_GET_SHOOT_POINT = "Unable to get shoot point from the children, override getter, or make sure the shoot point game object is named: ShootPoint";
 
-        [SerializeField] protected int killCount = 0;
+        [SerializeField] protected bool _isLockedToTarget = false;
+        [SerializeField] protected int _killCount = 0;
+        [SerializeField, Range(0f, 1f)] protected float _minimumLockOnEnemyDotProductRatio = 0.95f;
+        [SerializeField] protected float _debugDrawInterval = 1f;
+        protected float _timeToNextDraw = 0f;
+        protected float _nextShootTime = 0f;
+        [SerializeField] protected SearchTargetMethod _searchTargetMethod = SearchTargetMethod.Closest;
+        List<ITargetable> _oldTargets = new List<ITargetable>();
 
-        [SerializeField] protected DamageProperties damageProperties;
-        [SerializeField] protected bool isLockedToTarget = false;
-        [SerializeField, Range(0f,1f)] protected float minimumLockOnEnemyDotProductRatio = 0.95f;
-        //Add Scriptable Object Hierarchy for stat loading?
-        [SerializeField] protected float targetFindInterval = 1f;
-        [SerializeField] protected float turnSpeed = 2f;
-        [SerializeField] protected float shootInterval = 1f;
-        [SerializeField] protected float maxRange = 6f;
-        [SerializeField] protected float debugDrawInterval = 1f;
-        [SerializeField] protected Transform turretRotator;
-        [SerializeField] protected Transform shootPoint;
-        [SerializeField] protected Enemy target;
-        [SerializeField] protected SearchTargetMethod searchTargetMethod = SearchTargetMethod.Closest;
+        public int BuildCost => Stats.BuildCost.RoundedValue;
 
-        protected float timeToNextDraw = 0f;
-        protected float nextShootTime = 0f;
+        [SerializeField] protected Transform _turretRotator;
+        public Transform TurretRotator { get => GetTurretRotator(); }
 
-        protected int _buildCost = 5;
-        public int BuildCost { get => _buildCost; }
+        [SerializeField] protected Transform _shootPoint;
+        public Transform ShootPoint { get => GetShootPoint(); }
+
+        [SerializeField] protected ITargetable _currentTarget;
+        protected ITargetable CurrentTarget { get => _currentTarget; set => SetCurrentTarget(value); }
+
+        protected TowerBaseStats _baseStats;
+        public TowerBaseStats BaseStats { get => GetBaseStats(); }
+
+        protected DynamicTowerStats _stats;
+        public DynamicTowerStats Stats { get => GetDynamicStats(); }
 
         protected TowerLoadData _towerData;
         virtual public TowerLoadData TowerData { get => _towerData; set => _towerData = value; }
 
-        protected delegate Enemy TargetSearchDelegate(Enemy currentEnemy, Enemy previousEnemy);
+        protected delegate ITargetable TargetSearchDelegate(ITargetable ProcessedTarget, ITargetable target);
 
         virtual protected void Start()
         {
-            AddListeners();
-            SetupDamageProperties();
             StartCoroutine(SearchTarget());
             StartCoroutine(TurretAI());
         }
 
-        virtual protected void OnDestroy()
+        private void OnTargetDestroy(ITargetable destroyedTarget, Damage damage)
         {
-            RemoveListeners();
-        }
+            if (_oldTargets.Contains(destroyedTarget))
+            {
+                destroyedTarget.OnEliminated -= OnTargetDestroy;
+                _oldTargets.Remove(destroyedTarget);
+            }
 
-        virtual protected void AddListeners()
-        {
-            Enemy.OnDeath += OnEnemyDeath;
-        }
+            if (damage.Source != transform) return;
 
-        virtual protected void RemoveListeners()
-        {
-            Enemy.OnDeath -= OnEnemyDeath;
-        }
-
-        private void OnEnemyDeath(Enemy enemy, Damage damage)
-        {
-            if (damage.Attacker != transform) return;
-            Debug.Log(this.name + " Killed " + enemy.name + " enemy!, gain " + enemy.ExperienceReward + " experience");
-            killCount++;
-        }
-
-        protected virtual void SetupDamageProperties()
-        {
-            
+            Debug.Log(this.name + " Killed " + destroyedTarget.Name + " enemy!, gain " + destroyedTarget.XPReward + " experience");
+            _killCount++;
+            _currentTarget.OnEliminated -= OnTargetDestroy;
+            _currentTarget = null;
         }
 
         virtual protected IEnumerator TurretAI()
@@ -84,25 +78,25 @@ namespace TheTD.Towers
 
         virtual protected void CheckTarget()
         {
-            if (target == null) return;
-            target = IsTargetAvailable() ? AimAtTarget() : null;
+            if (_currentTarget == null) return;
+            _currentTarget = IsTargetAvailable() != null ? AimAtTarget() : null;
             ResetTimers();
         }
 
-        virtual protected Enemy AimAtTarget()
+        virtual protected ITargetable AimAtTarget()
         {
-            var aimPosition = target.transform.position - shootPoint.transform.position + target.EnemyBody.BodyCenterLocal;
+            var aimPosition = _currentTarget.Position - ShootPoint.transform.position + _currentTarget.BodyCenter;
             var aimDirection = aimPosition.normalized;
             TurnTurretTowardsAimDirection(aimDirection);
-            isLockedToTarget = IsLockedOnEnemy(aimDirection);
+            _isLockedToTarget = IsLockedOnTarget(aimDirection);
             TryToShoot();
-            return target;
+            return _currentTarget;
         }
 
         virtual protected void ResetTimers()
         {
-            timeToNextDraw = Time.time > timeToNextDraw ? Time.time + debugDrawInterval : timeToNextDraw;
-            nextShootTime = Time.time > nextShootTime ? Time.time + shootInterval : nextShootTime;
+            _timeToNextDraw = Time.time > _timeToNextDraw ? Time.time + _debugDrawInterval : _timeToNextDraw;
+            _nextShootTime = Time.time > _nextShootTime ? Time.time + Stats.ShootInterval.Value : _nextShootTime;
         }
 
         virtual public void BuildTower(Transform parent)
@@ -110,18 +104,18 @@ namespace TheTD.Towers
             Instantiate(TowerData.TowerPrefab, parent.position, transform.rotation, parent);
         }
 
-        virtual public bool IsLockedOnEnemy(Vector3 aimDirection)
+        virtual public bool IsLockedOnTarget(Vector3 aimDirection)
         {
-            Vector3 turretForward = turretRotator.transform.forward;
+            Vector3 turretForward = TurretRotator.transform.forward;
             Vector3 aimDirectionFlat = aimDirection;
             aimDirectionFlat.y = 0f;
             turretForward.y = 0f;
 
             var dot = Vector3.Dot(turretForward, aimDirectionFlat);
-            DrawDebugLineInLoop(shootPoint.position, aimDirection + shootPoint.position, Color.red);
+            DrawDebugLineInLoop(ShootPoint.position, aimDirection + ShootPoint.position, Color.red);
             float dotAbs = Mathf.Abs(dot);
 
-            if (dotAbs >= minimumLockOnEnemyDotProductRatio)
+            if (dotAbs >= _minimumLockOnEnemyDotProductRatio)
             {
                 return true;
             }
@@ -130,30 +124,30 @@ namespace TheTD.Towers
 
         virtual protected void TurnTurretTowardsAimDirection(Vector3 aimDirection)
         {
-            turretRotator.transform.forward = Vector3.Slerp(turretRotator.transform.forward, aimDirection, Time.deltaTime * turnSpeed);
+            TurretRotator.transform.forward = Vector3.Slerp(TurretRotator.transform.forward, aimDirection, Time.deltaTime * Stats.TurnSpeed.Value);
         }
 
         virtual protected bool IsInRange(Vector3 start, Vector3 end)
         {
-            return Vector3.Distance(start, end) <= maxRange ? true : false;
+            return Vector3.Distance(start, end) <= Stats.MaxRange.Value ? true : false;
         }
 
-        virtual protected Enemy IsTargetAvailable()
+        virtual protected ITargetable IsTargetAvailable()
         {
-            return IsInRange(transform.position, target.transform.position) && !target.IsDead ? target : null;
+            return IsInRange(transform.position, _currentTarget.Position) && !_currentTarget.IsDestroyed ? _currentTarget : null;
         }
 
         virtual protected void DrawDebugLineInLoop(Vector3 startPos, Vector3 endPos, Color lineColor)
         {
-            if (Time.time < timeToNextDraw) return;
-            Debug.DrawLine(startPos, endPos, lineColor, debugDrawInterval);
+            if (Time.time < _timeToNextDraw) return;
+            Debug.DrawLine(startPos, endPos, lineColor, _debugDrawInterval);
         }
 
         virtual protected void TryToShoot()
         {
-            if (!isLockedToTarget) return;
-            if (Time.time < nextShootTime) return;
-            if (shootPoint == null)
+            if (!_isLockedToTarget) return;
+            if (Time.time < _nextShootTime) return;
+            if (ShootPoint == null)
             {
                 Debug.LogFormat(SHOOT_POINT_IS_NULL_LOG_FORMAT);
                 return;
@@ -165,14 +159,14 @@ namespace TheTD.Towers
         {
             while (true)
             {
-                target = SelectTheCorrectMethod();
+                _currentTarget = SelectTheCorrectMethod();
                 yield return null;
             }
         }
 
-        virtual protected Enemy SelectTheCorrectMethod()
+        virtual protected ITargetable SelectTheCorrectMethod()
         {
-            switch (searchTargetMethod)
+            switch (_searchTargetMethod)
             {
                 case SearchTargetMethod.Closest: return SearchEnemyWithSearchMethod(SearchClosest);
                 case SearchTargetMethod.First: return SearchEnemyWithSearchMethod(SearchFirst);
@@ -183,48 +177,90 @@ namespace TheTD.Towers
             }
         }
 
-        virtual protected Enemy SearchEnemyWithSearchMethod(TargetSearchDelegate searchDelegate)
+        virtual protected ITargetable SearchEnemyWithSearchMethod(TargetSearchDelegate searchDelegate)
         {
-            Enemy firstEnemy = null;
+            ITargetable firstTarget = null;
             if (!SpawnersControl.Instance.enemiesInLevel.Any()) return null;
             for (int i = 0; i < SpawnersControl.Instance.enemiesInLevel.Count; i++)
             {
                 var currentEnemy = SpawnersControl.Instance.enemiesInLevel[i];
                 if (currentEnemy == null) continue;
-                if (firstEnemy == null)
+                if (firstTarget == null)
                 {
-                    firstEnemy = currentEnemy;
+                    firstTarget = currentEnemy;
                     continue;
                 }
 
-                firstEnemy = searchDelegate(currentEnemy, firstEnemy);
+                firstTarget = searchDelegate(currentEnemy, firstTarget);
             }
-            return firstEnemy;
+            return firstTarget;
         }
 
-        virtual protected Enemy SearchFirst(Enemy currentEnemy, Enemy firstEnemy)
+
+        virtual protected ITargetable SearchFirst(ITargetable proceccedTarget, ITargetable firstTarget)
         {
-            return IsInRange(shootPoint.position, currentEnemy.transform.position) && (Vector3.Distance(currentEnemy.transform.position, currentEnemy.Target.position) < Vector3.Distance(firstEnemy.transform.position, firstEnemy.Target.position)) ? currentEnemy : firstEnemy;
+            return IsInRange(ShootPoint.position, proceccedTarget.Position) && (Vector3.Distance(proceccedTarget.Position, proceccedTarget.Position) < Vector3.Distance(firstTarget.Position, firstTarget.Position)) ? proceccedTarget : firstTarget;
         }
 
-        virtual protected Enemy SearchLast(Enemy currentEnemy, Enemy lastEnemy)
+        virtual protected ITargetable SearchLast(ITargetable oricessedTarget, ITargetable lastTarget)
         {
-            return IsInRange(shootPoint.position, currentEnemy.transform.position) && (Vector3.Distance(currentEnemy.transform.position, currentEnemy.Target.position) > Vector3.Distance(lastEnemy.transform.position, lastEnemy.Target.position)) ? currentEnemy : lastEnemy;
+            return IsInRange(ShootPoint.position, oricessedTarget.Position) && (Vector3.Distance(oricessedTarget.Position, oricessedTarget.Position) > Vector3.Distance(lastTarget.Position, lastTarget.Position)) ? oricessedTarget : lastTarget;
         }
 
-        virtual protected Enemy SearchClosest(Enemy currentEnemy, Enemy closestEnemy)
+        virtual protected ITargetable SearchClosest(ITargetable processedTarget, ITargetable closestTarget)
         {
-            return Vector3.Distance(transform.position, currentEnemy.transform.position) < Vector3.Distance(transform.position, closestEnemy.transform.position) ? currentEnemy : closestEnemy;
+            return Vector3.Distance(transform.position, processedTarget.Position) < Vector3.Distance(transform.position, closestTarget.Position) ? processedTarget : closestTarget;
         }
 
-        virtual protected Enemy SearchHealthiest(Enemy currentEnemy, Enemy healthiestEnemy)
+        virtual protected ITargetable SearchHealthiest(ITargetable processedTarget, ITargetable healthiestTarget)
         {
-            return IsInRange(shootPoint.position, currentEnemy.transform.position) && (currentEnemy.CurrentHealth > healthiestEnemy.CurrentHealth) ? currentEnemy : healthiestEnemy;
+            return IsInRange(ShootPoint.position, processedTarget.Position) && (processedTarget.Health > healthiestTarget.Health) ? processedTarget : healthiestTarget;
         }
 
-        virtual protected Enemy SearchWeakest(Enemy currentEnemy, Enemy weakestEnemy)
+        virtual protected ITargetable SearchWeakest(ITargetable processedTarget, ITargetable weakestTarget)
         {
-            return IsInRange(shootPoint.position, currentEnemy.transform.position) && (currentEnemy.CurrentHealth < weakestEnemy.CurrentHealth) ? currentEnemy : weakestEnemy;
+            return IsInRange(ShootPoint.position, processedTarget.Position) && (processedTarget.Health < weakestTarget.Health) ? processedTarget : weakestTarget;
+        }
+
+        virtual protected void SetCurrentTarget(ITargetable value)
+        {
+            if (value == _currentTarget) return;
+            _oldTargets.Add(_currentTarget);
+            _currentTarget = value;
+            _currentTarget.OnEliminated += OnTargetDestroy;
+        }
+
+        virtual protected Transform GetTurretRotator()
+        {
+            if (_turretRotator != null) return _turretRotator;
+            var children = GetComponentsInChildren<Transform>();
+            var turretRotator = children.First(o => o.gameObject.name == "TurretRotator");
+            if (turretRotator == null) Debug.LogWarning(ERROR_GET_TURRET_ROTATOR);
+            return turretRotator;
+        }
+
+        protected Transform GetShootPoint()
+        {
+            if (_shootPoint != null) return _shootPoint;
+            var children = GetComponentsInChildren<Transform>();
+            var shootPoint = children.First(o => o.gameObject.name == "ShootPoint");
+            if (shootPoint == null) Debug.LogWarning(ERROR_GET_SHOOT_POINT);
+            return shootPoint;
+        }
+
+        virtual protected TowerBaseStats GetBaseStats()
+        {
+            if (_baseStats != null) return _baseStats;
+            string fileName = name.Replace("(Clone)", "") + "Stats";
+            _baseStats = Resources.Load<TowerBaseStats>(PATH_TO_BASE_STATS + fileName);
+            return _baseStats;
+        }
+
+        virtual protected DynamicTowerStats GetDynamicStats()
+        {
+            if (_stats != null) return _stats;
+            _stats = new DynamicTowerStats(BaseStats);
+            return _stats;
         }
 
         virtual protected void Shoot() { }

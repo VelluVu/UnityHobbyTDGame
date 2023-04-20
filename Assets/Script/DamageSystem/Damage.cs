@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TheTD.StatSystem;
 using UnityEngine;
 
 namespace TheTD.DamageSystem
@@ -8,58 +9,95 @@ namespace TheTD.DamageSystem
     public class Damage
     {
         public bool IsCritical { get; set; }
-        public int BaseValue { get; set; }
-        public int Value { get; set; }
-        public float CriticalChance { get; set; }
-        public float CriticalDamageMultiplier { get; set; }
-        public IDamageType DamageType { get; set; }
-        public Transform Attacker { get; set; }
-        public List<IOvertimeEffect> OvertimeEffects { get; set; }
-        public List<IDamageModifier> Modifiers { get; set; }
+        public Stat DamageStat { get; set; }
+        public Stat CriticalChance { get; set; }
+        public Stat CriticalDamageMultiplier { get; set; }
+        public Transform Source { get; set; }
+
+        private List<IOvertimeEffect> _overtimeEffects; 
+        public List<IOvertimeEffect> OvertimeEffects { get => _overtimeEffects = _overtimeEffects != null ? _overtimeEffects : new List<IOvertimeEffect>(); }
+
+        private List<DamageType> _damageTypes;
+        public List<DamageType> DamageTypes { get => _damageTypes = _damageTypes != null ? _damageTypes : new List<DamageType>(); }
+
         public Action<Damage> OnDamageCalculated;
 
-        public Damage(int value, float criticalChange, float criticalDamageMultiplier, IDamageType damageType, Transform attacker, List<IDamageModifier> modifiers, List<IOvertimeEffect> ovetimeEffects)
+        public Damage(Stat damageStat, Stat criticalChange, Stat criticalDamageMultiplier, DamageType damageType, List<IOvertimeEffect> overtimeEffects, Transform source)
         {
-            Value = value;
-            BaseValue = Value;
+            DamageStat = damageStat;
             CriticalChance = criticalChange;
             CriticalDamageMultiplier = criticalDamageMultiplier;
-            DamageType = damageType;
-            Attacker = attacker;
-            OvertimeEffects = ovetimeEffects != null ? OvertimeEffects : new List<IOvertimeEffect>();
-            Modifiers = modifiers != null ? modifiers : new List<IDamageModifier>();
+            DamageTypes.Add(damageType);
+            AddRangeOfDamageOvertimeEffects(overtimeEffects);
+            Source = source;
         }
 
-        public Damage(DamageProperties properties, Transform attacker)
+        public Damage(Stat damageStat, Stat criticalChange, Stat criticalDamageMultiplier, List<DamageType> damageTypes, List<IOvertimeEffect> overtimeEffects, Transform source)
         {
-            Value = properties.baseDamage;
-            BaseValue = Value;
-            CriticalChance = properties.criticalChange;
-            CriticalDamageMultiplier = properties.criticalDamageMultiplier;
-            DamageType = properties.damageType;
-            Attacker = attacker;
-            OvertimeEffects = properties.overtimeEffects;
-            Modifiers = properties.damageModifiers;
+            DamageStat = damageStat;
+            CriticalChance = criticalChange;
+            CriticalDamageMultiplier = criticalDamageMultiplier;
+            AddRangeOfDamageTypes(damageTypes);
+            AddRangeOfDamageOvertimeEffects(overtimeEffects);
+            Source = source;
+        }
+
+        public Damage(float damage, float criticalChance, float criticalDamageMultiplier, List<DamageType> damageTypes, List<IOvertimeEffect> overtimeEffects, Transform source)
+        {
+            DamageStat = new Stat(damage, StatFlags.Damage);
+            CriticalChance = new Stat(criticalChance, StatFlags.CriticalChange);
+            CriticalDamageMultiplier = new Stat(criticalDamageMultiplier, StatFlags.CriticalDamageMultiplier);
+            AddRangeOfDamageTypes(damageTypes);
+            AddRangeOfDamageOvertimeEffects(overtimeEffects);
+            Source = source;
         }
         
-        public void CalculateBase()
+        public Damage(Damage damage)
         {
-            DamageType.CalculateBaseDamage(this);
+            DamageStat = new Stat(damage.DamageStat);
+            CriticalChance = new Stat(damage.CriticalChance);
+            CriticalDamageMultiplier = new Stat(damage.CriticalDamageMultiplier);
+            DamageTypes.AddRange(damage.DamageTypes);
+            Source = damage.Source;
+            AddRangeOfDamageOvertimeEffects(damage.OvertimeEffects);
         }
 
-        public void ApplyModifiers(List<IDamageModifier> modifiers)
+        private void AddRangeOfDamageOvertimeEffects(List<IOvertimeEffect> overtimeEffects)
         {
-            if (modifiers == null || !modifiers.Any()) return;
-            modifiers.ForEach(o => o.Modify(this));
-            if (OvertimeEffects == null || !OvertimeEffects.Any()) return;
-            modifiers.ForEach(o => OvertimeEffects.ForEach(i => i.ModifyOvertimeEffect(o)));
+            if (overtimeEffects == null || !overtimeEffects.Any()) return;
+            OvertimeEffects.AddRange(overtimeEffects);
         }
 
-        public void CalculateCritical(SecureRandomNumberGenerator randomNumberGenerator)
+        private void AddRangeOfDamageTypes(List<DamageType> damageTypes)
         {
-            IsCritical = randomNumberGenerator.RollPercent(CriticalChance);
+            if (damageTypes == null || !damageTypes.Any()) return;
+            DamageTypes.AddRange(damageTypes);       
+        }
+
+        public void CalculateCritical(IRandomGenerator randomNumberGenerator)
+        {
+            IsCritical = randomNumberGenerator.RollPercent(CriticalChance.Value);
             if (!IsCritical) return;
-            Value += Mathf.RoundToInt(Value * CriticalDamageMultiplier);
+            var criticalDamageIncrement = DamageStat.Value * CriticalDamageMultiplier.Value;
+            DamageStat.BaseValue += criticalDamageIncrement >= 0.5f ? criticalDamageIncrement : 1f;
+        }
+
+        private void AddDamageTypeIfNotAlreadyInList(DamageType damageType)
+        {
+            if (DamageTypes.Contains(damageType)) return;
+            DamageTypes.Add(damageType);
+        }
+
+        public void Add(Damage addedDamage)
+        {
+            DamageStat.BaseValue += addedDamage.DamageStat.Value;
+            CriticalChance.BaseValue += addedDamage.CriticalChance.Value;
+            CriticalDamageMultiplier.BaseValue += addedDamage.CriticalDamageMultiplier.Value;
+            AddRangeOfDamageOvertimeEffects(addedDamage.OvertimeEffects);
+            if (addedDamage.DamageTypes != null || addedDamage.DamageTypes.Any())
+            {
+                addedDamage.DamageTypes.ForEach(o => AddDamageTypeIfNotAlreadyInList(o));
+            }
         }
     }
 }

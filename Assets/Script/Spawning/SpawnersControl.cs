@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using TheTD.Core;
 using TheTD.DamageSystem;
 using TheTD.Enemies;
 using UnityEngine;
@@ -17,13 +18,15 @@ namespace TheTD.Spawning
         public List<Enemy> enemiesInLevel = new List<Enemy>();
 
         public int AmountOfAliveEnemiesInLevel { get => enemiesInLevel.Count; }
-        public int AmountOfSpawnsInLevel { get => GetAmountOfSpawnsInLevel(); }
         public int AmountOfEnemiesDestroyedInLevel { get; private set; }
         public int AmountOFEnemiesReachedEndInLevel { get; private set; }
         public int AmountOfEnemiesSpawnedInLevel { get; private set; }
 
-        private List<Spawner> _spawners;
-        public List<Spawner> Spawners { get => _spawners = _spawners != null ? CheckSpawns() : GetSpawns(); }
+        protected int _amountOfSpawnsInLevel = -1;
+        public int AmountOfSpawnsInLevel { get => _amountOfSpawnsInLevel = _amountOfSpawnsInLevel == -1 ? GetAmountOfSpawnsInLevel() : _amountOfSpawnsInLevel; private set => _amountOfSpawnsInLevel = value; }
+
+        private List<Spawner> _allSpawners;
+        public List<Spawner> AllSpawners { get => _allSpawners = _allSpawners != null ? CheckSpawns() : GetSpawns(); }
 
         public delegate void SpawnersControlDelegate(WaveState waveState, Enemy enemy);
         public event SpawnersControlDelegate OnEnemyKilled;
@@ -53,9 +56,9 @@ namespace TheTD.Spawning
 
         private void Start()
         {
-            _spawners = GetSpawns();
-            if (!_spawners.Any()) return;
-            _spawners.ForEach(o => AddSpawnListeners(o));
+            _allSpawners = GetSpawns();
+            if (!_allSpawners.Any()) return;
+            _allSpawners.ForEach(o => AddSpawnListeners(o));
         }
 
         public void AddSpawnListeners(Spawner spawn)
@@ -118,7 +121,7 @@ namespace TheTD.Spawning
 
         private void CheckTheGameStateConditions(WaveState waveState)
         {
-            if (waveState.AmountOfEnemiesKilledInWave >= waveState.AmountOfSpawnsInWave) OnWaveComplete?.Invoke(waveState);
+            if (waveState.AmountOfEnemiesDestroyedInWave >= waveState.AmountOfSpawnsInWave) OnWaveComplete?.Invoke(waveState);        
             if (AmountOfEnemiesDestroyedInLevel >= AmountOfSpawnsInLevel) OnLevelComplete?.Invoke(waveState);
         }
 
@@ -129,7 +132,7 @@ namespace TheTD.Spawning
 
         private List<Spawner> CheckSpawns()
         {
-            return HasNewSpawns() ? GetSpawns() : _spawners;
+            return HasNewSpawns() ? GetSpawns() : _allSpawners;
         }
 
         private bool HasNewSpawns()
@@ -137,7 +140,7 @@ namespace TheTD.Spawning
             for (int i = 0; i < transform.childCount; i++)
             {
                 var spawn = transform.GetChild(i).GetComponent<Spawner>();
-                if (_spawners.Contains(spawn)) continue;
+                if (_allSpawners.Contains(spawn)) continue;
                 AddSpawnListeners(spawn);
             }
             return false;
@@ -150,14 +153,29 @@ namespace TheTD.Spawning
 
         private List<Spawner> GetSpawnersInWave(int wave)
         {
-            return Spawners.FindAll(o => o.waveToParticipate == wave);
+            return AllSpawners.FindAll(o => o.waveToParticipate == wave);
         }
 
         public void SpawnWithSelectedSpawners(int wave)
         {
             var spawnersInWave = GetSpawnersInWave(wave);
-            WaveState waveState = new WaveState(wave, spawnersInWave);
-            waveStates.Add(waveState);
+            var waveState = FindWaveState(wave);
+
+            if (waveState == null)
+            {
+                waveState = new WaveState(wave, spawnersInWave);
+                waveStates.Add(waveState);
+                GameControl.Instance.SetSpawnWave(wave);
+            }
+            else
+            {
+                AmountOfEnemiesDestroyedInLevel -= waveState.AmountOfEnemiesDestroyedInWave;
+                AmountOfEnemiesSpawnedInLevel -= waveState.AmountOfEnemiesSpawnedInWave;
+                AmountOFEnemiesReachedEndInLevel -= waveState.AmountOFEnemiesReachedEnd;
+                waveState.ResetWaveState();
+                GameControl.Instance.SetSpawnWave(wave);
+            }
+
             foreach (var spawn in spawnersInWave)
             {
                 spawn.SpawnSet();
@@ -172,7 +190,7 @@ namespace TheTD.Spawning
         private int GetAmountOfSpawnsInLevel()
         {
             int spawnsInLevel = 0;
-            Spawners.ForEach(o => spawnsInLevel += o.TotalSpawns);
+            AllSpawners.ForEach(o => spawnsInLevel += o.TotalSpawns);
             return spawnsInLevel;
         }
     }

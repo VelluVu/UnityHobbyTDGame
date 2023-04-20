@@ -123,7 +123,7 @@ GameObject:
   - component: {fileID: 2631366218665552593}
   - component: {fileID: 295728076632185760}
   m_Layer: 11
-  m_Name: Rotator_Mesh
+  m_Name: TurretRotator
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -238,21 +238,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 293f58a100972e34d9d22ef01743ea1a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damageProperties:
-    baseDamage: 0
-    criticalChange: 0
-    criticalDamageMultiplier: 0
-  isLockedToTarget: 0
-  minimumLockOnEnemyDotProductRatio: 0.95
-  targetFindInterval: 1
-  turnSpeed: 10
-  shootInterval: 1
-  maxRange: 6
-  debugDrawInterval: 1
-  turretRotator: {fileID: 4937141189246830307}
-  shootPoint: {fileID: 4188509629688371598}
-  target: {fileID: 0}
-  searchTargetMethod: 0
+  _isLockedToTarget: 0
+  _killCount: 0
+  _minimumLockOnEnemyDotProductRatio: 0.95
+  _debugDrawInterval: 1
+  TurretRotator: {fileID: 0}
+  ShootPoint: {fileID: 0}
+  _searchTargetMethod: 0
   maxShootForce: 10
   projectilePrefab: {fileID: 1915144652504460451, guid: df37511f474d68c49be27e80772f6ba5, type: 3}
 --- !u!1 &6369959010192936285

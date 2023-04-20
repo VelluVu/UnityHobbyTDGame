@@ -3,16 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TheTD.DamageSystem;
-using TheTD.Projectiles;
 using UnityEngine;
 using UnityEngine.AI;
 
 namespace TheTD.Enemies
 {
-    public abstract class Enemy : MonoBehaviour, IDamageable
+    public abstract class Enemy : MonoBehaviour, IDamageable, ITargetable
     {
         //TODO:
-        //should have enemy stats scriptable object injected depending on enemy type, to remove the stat variables from here.
         //should have enemy state machine to control enemy pathfinding and change from MOVE to different states like STUN, or FLEEING, MOVEFAST, DEAD, STOP
         //path should never be blocked, make build area to handle bad wrong tower placements!
         //should listen the state machine changes and launch events depending on the event.
@@ -22,35 +20,29 @@ namespace TheTD.Enemies
         private const string ENEMY_PATH_BLOCK_ERROR = "ERROR : ENEMY PATH BLOCKED";
         private const string PASSTHROUGH_LAYER_NAME = "PassThrough";
         private const string ENEMY_LAYER_NAME = "Enemy";
+        protected const string PATH_TO_STATS_FOLDER = "ScriptableObjects/Enemies/Stats/";
+        protected const string END_PATH = "BaseStats";
         public float originalAgentRadius = 0.3f;
         public float shrinkedAgentRadius = 0.1f;
+        private float dissolveDelay = 1f;
 
-        protected EnemyType type = EnemyType.Goblin;
+        [SerializeField] protected EnemyType type = EnemyType.Goblin;
         protected List<IOvertimeEffect> OnGoingOvertimeEffects = new List<IOvertimeEffect>();
         protected List<Coroutine> damageTakeCoroutines = new List<Coroutine>();
 
+        protected virtual string FULL_PATH_TO_ENEMY_STATS { get => PATH_TO_STATS_FOLDER + type.ToString() + END_PATH; }
+        
         protected bool _isReachedEnd = false;
         public bool IsReachedEnd { get => _isReachedEnd; private set => SetReachedEnd(value); }
 
         private bool _isDead;
         virtual public bool IsDead { get => _isDead; set => SetIsDead(value); }
 
-        [SerializeField] protected float _currentHealth = 20f;
-        virtual public float CurrentHealth { get => _currentHealth; private set => _currentHealth = value; }
-
-        [SerializeField] protected float _maxHealth = 20f;
-        virtual public float MaxHealth { get => _maxHealth; private set => _maxHealth = value; }
-
-        [SerializeField] protected int _damage = 1;
-        virtual public int Damage { get => _damage; private set => _damage = value; }
-
-        [SerializeField] protected int _goldValue = 1;
-        virtual public int GoldValue { get => _goldValue; private set => _goldValue = value; }
-
-        [SerializeField] protected float _experienceReward;
-        virtual public float ExperienceReward { get => _experienceReward; private set => _experienceReward = value; }
-
-        private float dissolveDelay = 1f;
+        [SerializeField] protected EnemyBaseStats _baseStats;
+        public EnemyBaseStats BaseStats { get => _baseStats = _baseStats != null ? _baseStats : GetEnemyBaseStats(); }
+        
+        [SerializeField] protected DynamicEnemyStats _stats;
+        public DynamicEnemyStats Stats { get => _stats; }
 
         protected NavMeshAgent _agent;
         virtual public NavMeshAgent Agent { get => _agent = _agent != null ? _agent : GetComponentInChildren<NavMeshAgent>(); }
@@ -69,7 +61,21 @@ namespace TheTD.Enemies
 
         protected EnemyBody _enemyBody;
 
-        virtual public EnemyBody EnemyBody { get => _enemyBody = _enemyBody != null ? _enemyBody : GetComponentInChildren<EnemyBody>(); }
+        virtual public EnemyBody Body { get => _enemyBody = _enemyBody != null ? _enemyBody : GetComponentInChildren<EnemyBody>(); }
+
+        public bool IsDestroyed => IsDead;
+
+        public string Name => Name;
+
+        public float XPReward => Stats.ExperienceReward.Value;
+
+        public float Health => Stats.CurrentHealth.Value;
+
+        public Vector3 Position => transform.position;
+
+        public Vector3 BodyCenter => Body.CenterLocal;
+
+        public Vector3 Velocity => Agent.velocity;
 
         public delegate void EnemyDelegate(Enemy enemy);
         public static event EnemyDelegate OnReachEnd;
@@ -80,6 +86,12 @@ namespace TheTD.Enemies
 
         public event Action<IDamageable, Damage> OnTakeRawDamage;
         public event Action<IDamageable, Damage, IOvertimeEffect> OnDamage;
+        public event Action<ITargetable, Damage> OnEliminated;
+        
+        private void Awake()
+        {
+            _stats = new DynamicEnemyStats(BaseStats, Agent);
+        }
 
         virtual public void StartMoving()
         {
@@ -91,8 +103,8 @@ namespace TheTD.Enemies
         {
             IsReachedEnd = false;
             IsDead = false;
-            CurrentHealth = MaxHealth;
-            Agent.destination = Target.transform.position + Vector3.up * transform.position.y;
+            Stats.ResetStatsBaseValues();
+            Agent.destination = Target.transform.position + Vector3.up * Body.CenterLocal.y;
         }
 
         virtual protected void Start()
@@ -118,10 +130,9 @@ namespace TheTD.Enemies
             }
         }
 
-        virtual protected void CheckDeath()
-        {
-            if (CurrentHealth > 0f) return;
-            IsDead = true;
+        virtual protected bool CheckIfDie()
+        {         
+            return Stats.CurrentHealth.BaseValue <= 0f;
         }
 
         virtual protected IEnumerator CheckNavMeshState()
@@ -159,11 +170,11 @@ namespace TheTD.Enemies
 
         virtual protected void ClearStuckProjectiles()
         {
-            var projectiles = GetComponentsInChildren<Projectile>();
+            var projectiles = GetComponentsInChildren<IProjectile>();
             if (!projectiles.Any()) return;
             for (int i = 0; i < projectiles.Length; i++)
             {
-                projectiles[i].ReadyForBool();
+                projectiles[i].ReadyForPool();
             }
         }
 
@@ -201,7 +212,7 @@ namespace TheTD.Enemies
 
         virtual protected void EnableEnemyPassThroughLayerWhenDead()
         {
-            EnemyBody.gameObject.layer = _isDead ? LayerMask.NameToLayer(PASSTHROUGH_LAYER_NAME) : LayerMask.NameToLayer(ENEMY_LAYER_NAME);
+            Body.gameObject.layer = _isDead ? LayerMask.NameToLayer(PASSTHROUGH_LAYER_NAME) : LayerMask.NameToLayer(ENEMY_LAYER_NAME);
             gameObject.layer = _isDead ? LayerMask.NameToLayer(PASSTHROUGH_LAYER_NAME) : LayerMask.NameToLayer(ENEMY_LAYER_NAME);
         }
 
@@ -236,16 +247,17 @@ namespace TheTD.Enemies
 
         private void ReduceTheHealth(Damage damage, IOvertimeEffect overtimeEffect = null)
         {
-            CurrentHealth -= overtimeEffect == null ? damage.Value : overtimeEffect.TickDamage;
-            DamageNumberManager.Instance.SpawnFloatingDamageNumber(damage, transform.position + EnemyBody.HeadPointLocal, overtimeEffect);
+            Stats.CurrentHealth.BaseValue -= overtimeEffect == null ? damage.DamageStat.RoundedValue : overtimeEffect.TickDamage;
+            DamageNumberManager.Instance.SpawnFloatingDamageNumber(damage, transform.position + Body.HeadPointLocal, overtimeEffect);
             OnDamage?.Invoke(this, damage, overtimeEffect);
-            CheckDeath();
+            IsDead = CheckIfDie();
 
             if (IsDead)
             {
                 StopDamageTakeCoroutines();
                 StartCoroutine(DestroySmoothly(dissolveDelay));
                 OnDeath?.Invoke(this, damage);
+                OnEliminated?.Invoke(this, damage);
             }
         }
 
@@ -261,10 +273,19 @@ namespace TheTD.Enemies
             damageTakeCoroutines.TrimExcess();
         }
 
-        public List<IDamageModifier> GetDamageModifiers()
+        virtual protected EnemyBaseStats GetEnemyBaseStats()
         {
-            //Get defensive damage reducing modifiers from the stats
-            return null;
+            var loadedBaseStats = Resources.Load<EnemyBaseStats>(FULL_PATH_TO_ENEMY_STATS);
+            return loadedBaseStats;
         }
+
+        /// <summary>
+        /// Get these from items, 
+        /// or creature specific, 
+        /// these are applied to reduce, 
+        /// or increase the taken damage.
+        /// </summary>
+        /// <returns></returns>
+        public abstract List<IModifier> GetDefensiveModifiers();
     }
 }

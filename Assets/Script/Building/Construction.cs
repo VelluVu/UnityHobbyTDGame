@@ -1,5 +1,4 @@
 using TheTD.Core;
-using TheTD.Towers;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -7,14 +6,14 @@ namespace TheTD.Building
 {
     public class Construction : MonoBehaviour
     {
-        private const string BUILDING_GAME_OBJECT_NAME = "Building";
+        private const string CONSTRUCTION_GAME_OBJECT_NAME = "Construction";
         private const string NAV_MESH_OBSTACLE_PREFAB_PATH = "Prefabs/NavMeshObstacle";
 
         [SerializeField]private int buildOnWave = 0;
         public bool IsNew { get; internal set; }
 
-        private TowerBase tower;
-        public TowerBase Tower { get => tower; set => SetTower(value); }
+        private ITower tower;
+        public ITower Tower { get => tower; set => SetTower(value); }
 
         private BuildSpot buildSpot;
         public BuildSpot BuildSpot { get => buildSpot; private set => buildSpot = value; }
@@ -35,11 +34,11 @@ namespace TheTD.Building
             CheckBuildingStatus(wave);
         }
 
-        public void InitBuilding(BuildSpot buildSpot, TowerLoadData towerData)
+        public void InitBuilding(BuildSpot buildSpot, ITowerLoadData towerData)
         {
             IsNew = true;
-            buildOnWave = GameControl.Instance.SpawnWave;
-            gameObject.name = BUILDING_GAME_OBJECT_NAME;
+            buildOnWave = GameControl.Instance.CurrentSpawnWave;
+            gameObject.name = CONSTRUCTION_GAME_OBJECT_NAME;
             BuildSpot = buildSpot;
             transform.position = BuildSpot.CenterPositionInWorld;
             NavMeshObstacle = Instantiate(NavMeshObstaclePrefab, BuildSpot.CenterPositionInWorld + Vector3.up * 0.5f, Quaternion.identity).GetComponent<NavMeshObstacle>();
@@ -47,7 +46,7 @@ namespace TheTD.Building
             Tower = towerData.Tower;           
         }
 
-        private void SetTower(TowerBase value)
+        private void SetTower(ITower value)
         {
             if (tower == value) return;
             tower = value;

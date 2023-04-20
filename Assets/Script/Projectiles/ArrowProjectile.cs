@@ -1,4 +1,3 @@
-using TheTD.DamageSystem;
 using UnityEngine;
 
 namespace TheTD.Projectiles
@@ -29,7 +28,7 @@ namespace TheTD.Projectiles
 
             if (IsCollided && transform.parent == null)
             {
-                ReadyForBool();
+                ReadyForPool();
             }
         }
 
@@ -45,12 +44,7 @@ namespace TheTD.Projectiles
 
         protected override void SetProjectileBasedOvertimeEffects()
         {
-            damageProperties.overtimeEffects.Add(new BleedOvertimeEffect(damageProperties.baseDamage, 3f, 3));
-        }
-
-        protected override void SetProjectileBasedDamageType()
-        {
-            damageProperties.damageType = new PhysicalDamageType();
+            
         }
     }
 }
