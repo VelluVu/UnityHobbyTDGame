@@ -6,40 +6,40 @@ namespace TheTD.Enemies
     [CreateAssetMenu(menuName = "Enemy/Stats/BaseStats")]
     public class EnemyBaseStats : ScriptableObject
     {
-        [SerializeField] private Stat _maxHealth;
+        [SerializeField] private Stat _maxHealth = null;
         public Stat MaxHealth { get => _maxHealth; }
 
-        [SerializeField] private Stat _damage;
+        [SerializeField] private Stat _damage = null;
         public Stat Damage { get => _damage; }
 
-        [SerializeField] private Stat _armor;
+        [SerializeField] private Stat _armor = null;
         public Stat Armor { get => _armor; }
 
-        [SerializeField] private Stat _fireMagicResistance;
+        [SerializeField] private Stat _fireMagicResistance = null;
         public Stat FireMagicResistance { get => _fireMagicResistance; }
 
-        [SerializeField] private Stat _coldMagicResistance;
+        [SerializeField] private Stat _coldMagicResistance = null;
         public Stat ColdMagicResistance { get => _coldMagicResistance; }
 
-        [SerializeField] private Stat _poisonMagicResistance;
+        [SerializeField] private Stat _poisonMagicResistance = null;
         public Stat PoisonMagicResistance { get => _poisonMagicResistance; }
 
-        [SerializeField] private Stat _blackMagicResistance;
+        [SerializeField] private Stat _blackMagicResistance = null;
         public Stat BlackMagicResistance { get => _blackMagicResistance; }
 
-        [SerializeField] private Stat _goldReward;
+        [SerializeField] private Stat _goldReward = null;
         public Stat GoldReward { get => _goldReward; }
 
-        [SerializeField] private Stat _experienceReward;
+        [SerializeField] private Stat _experienceReward = null;
         public Stat ExperienceReward { get => _experienceReward; }
 
-        [SerializeField] private Stat _moveSpeed;
+        [SerializeField] private Stat _moveSpeed = null;
         public Stat MoveSpeed { get => _moveSpeed; }
 
-        [SerializeField] private Stat _turnSpeed;
+        [SerializeField] private Stat _turnSpeed = null;
         public Stat TurnSpeed { get => _turnSpeed; }
 
-        [SerializeField] private Stat _acceleration;
+        [SerializeField] private Stat _acceleration = null;
         public Stat Acceleration { get => _acceleration; }
     }
 }

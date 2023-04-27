@@ -7,7 +7,7 @@ public abstract class DamageNumber : MonoBehaviour
     [SerializeField] private float duration = 1f;
     [SerializeField] private float fadeDuration = 0.5f;
     [SerializeField] private float yOffset = 0.5f;
-    [SerializeField] private AnimationCurve fadeCurve;
+    [SerializeField] private AnimationCurve fadeCurve = null;
 
     [SerializeField] private float criticalTextSizeMultiplier = 1.2f;
     [SerializeField] private float overtimeTextSizeMultiplier = 0.75f;

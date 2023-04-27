@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using TheTD.Core;
 using TheTD.UI;
 using UnityEngine;
 
@@ -52,13 +53,13 @@ namespace TheTD.Building
 
         public void SellOnSelectedArea()
         {
-            if (selectedBuildArea == null) return;
+            if (selectedBuildArea == null || !GameControl.Instance.EnableBuilding) return;
             selectedBuildArea.SellOnSelectedSpot();
         }
 
         public void BuildOnSelectedArea(ITowerLoadData towerData)
         {
-            if (selectedBuildArea == null) return;
+            if (selectedBuildArea == null || !GameControl.Instance.EnableBuilding) return;
             selectedBuildArea.BuildOnSelectedSpot(towerData);
         }
 

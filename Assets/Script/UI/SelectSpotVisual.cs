@@ -39,7 +39,8 @@ namespace TheTD.UI
             _isSelected = value;
             if (_isSelected && selectedBuildSpot != null)
             {
-                SetMaterial(selectedBuildSpot.IsOccupied);
+                var isOccupied = selectedBuildSpot.HasConstruction || selectedBuildSpot.IsInvalidSpot;
+                SetMaterial(isOccupied);
                 transform.position = new Vector3(selectedBuildSpot.CenterPositionInWorld.x, selectedBuildSpot.CenterPositionInWorld.y + transform.localPosition.y, selectedBuildSpot.CenterPositionInWorld.z);
             }
         }

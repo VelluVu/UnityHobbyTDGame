@@ -5,10 +5,10 @@ namespace TheTD.Players
 
     public class Player : MonoBehaviour
     {
-        [SerializeField] private Gold _gold;
+        [SerializeField] private Gold _gold = null;
         public Gold Gold { get => _gold; }
 
-        [SerializeField] private Life _life;
+        [SerializeField] private Life _life = null;
         public Life Life { get => _life; }
 
         public delegate void PlayerDelegate(Player player);

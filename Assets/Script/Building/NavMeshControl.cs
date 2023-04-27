@@ -1,3 +1,4 @@
+using TheTD.Spawning;
 using Unity.AI.Navigation;
 using UnityEngine;
 
@@ -5,15 +6,29 @@ namespace TheTD.Building
 {
     public class NavMeshControl : MonoBehaviour
     {
+        public static NavMeshControl Instance { get; private set; }
+
         private NavMeshSurface navMeshSurface;
         public NavMeshSurface NavMeshSurface { get => navMeshSurface = navMeshSurface != null ? navMeshSurface : GetComponent<NavMeshSurface>(); }
 
         public delegate void NavMeshSurfaceDelegate(NavMeshSurface surface);
         public static event NavMeshSurfaceDelegate OnNavMeshRebuild;
 
-        private void Start()
+        private void Awake()
         {
-            // AddListeners();
+            CheckSingleton();
+        }
+
+        private void CheckSingleton()
+        {
+            if (Instance != null && Instance != this)
+            {
+                Destroy(this);
+            }
+            else
+            {
+                Instance = this;
+            }
         }
 
         public void AddListeners()
@@ -44,7 +59,7 @@ namespace TheTD.Building
             RebuildNavMesh();
         }
 
-        private void RebuildNavMesh()
+        public void RebuildNavMesh()
         {
             NavMeshSurface.BuildNavMesh();
             OnNavMeshRebuild?.Invoke(NavMeshSurface);

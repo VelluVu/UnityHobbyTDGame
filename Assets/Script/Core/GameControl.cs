@@ -23,7 +23,7 @@ namespace TheTD.Core
 
         [SerializeField]private Player _player;
         public Player Player { get => _player = _player != null ? _player : FindObjectOfType<Player>(); }
-
+        public bool EnableBuilding { get; set; }
 
         public delegate void GameDelegate(int wave);
         public event GameDelegate OnPlayerLose;
@@ -51,6 +51,7 @@ namespace TheTD.Core
         {
             DamageCalculator = new DamageCalculator();
             AddListers();
+            EnableBuilding = true;
         }
 
         public void Ready()

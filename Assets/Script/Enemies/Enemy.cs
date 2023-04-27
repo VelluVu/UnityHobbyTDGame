@@ -21,7 +21,7 @@ namespace TheTD.Enemies
         private const string PASSTHROUGH_LAYER_NAME = "PassThrough";
         private const string ENEMY_LAYER_NAME = "Enemy";
         protected const string PATH_TO_STATS_FOLDER = "ScriptableObjects/Enemies/Stats/";
-        protected const string END_PATH = "BaseStats";
+        protected const string BASE_STATS_NAME = "BaseStats";
         public float originalAgentRadius = 0.3f;
         public float shrinkedAgentRadius = 0.1f;
         private float dissolveDelay = 1f;
@@ -30,7 +30,7 @@ namespace TheTD.Enemies
         protected List<IOvertimeEffect> OnGoingOvertimeEffects = new List<IOvertimeEffect>();
         protected List<Coroutine> damageTakeCoroutines = new List<Coroutine>();
 
-        protected virtual string FULL_PATH_TO_ENEMY_STATS { get => PATH_TO_STATS_FOLDER + type.ToString() + END_PATH; }
+        protected virtual string FULL_PATH_TO_ENEMY_STATS { get => PATH_TO_STATS_FOLDER + type.ToString() + BASE_STATS_NAME; }
         
         protected bool _isReachedEnd = false;
         public bool IsReachedEnd { get => _isReachedEnd; private set => SetReachedEnd(value); }
@@ -48,7 +48,7 @@ namespace TheTD.Enemies
         virtual public NavMeshAgent Agent { get => _agent = _agent != null ? _agent : GetComponentInChildren<NavMeshAgent>(); }
 
         protected Transform _target;
-        virtual public Transform Target { get => _target = _target != null ? _target : GameObject.FindGameObjectWithTag(END_POINT_TAG).transform; }
+        virtual public Transform Target { get => _target = _target != null ? _target : GameObject.FindGameObjectWithTag(END_POINT_TAG).transform; set => _target = value; }
 
         protected Renderer _renderer;
         virtual public Renderer Renderer { get => _renderer = _renderer != null ? _renderer : GetComponentInChildren<Renderer>(); }

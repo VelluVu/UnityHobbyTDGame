@@ -9,11 +9,29 @@ namespace TheTD.Building
     /// </summary>
     public class WorldObstacleControl : MonoBehaviour
     {
+        public static WorldObstacleControl Instance;
         public List<Obstacle> obstacles = new List<Obstacle>();
 
         public delegate void ObstacleDelegate();
         public static event ObstacleDelegate OnObstacleAdd;
         public static event ObstacleDelegate OnObstacleRemove;
+
+        private void Awake()
+        {
+            CheckSingleton();
+        }
+
+        private void CheckSingleton()
+        {
+            if (Instance != null && Instance != this)
+            {
+                Destroy(this);
+            }
+            else
+            {
+                Instance = this;
+            }
+        }
 
         public void Start()
         {

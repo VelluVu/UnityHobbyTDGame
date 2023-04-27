@@ -9,10 +9,15 @@ namespace TheTD.Spawning
     {
         public List<Spawner> SpawnersInWave = new List<Spawner>();
         public List<Enemy> enemiesInWave = new List<Enemy>();
-        public bool IsComplete { get => GetIsComplete(); }
+        private bool _isComplete = false;
+        public bool IsComplete { get => _isComplete; private set => SetIsComplete(value); }
+
+        public delegate void WaveStateDelegateTwo(WaveState waveState);
+        public event WaveStateDelegateTwo OnWaveComplete;
+
         public int WaveNumber { get; private set; }
         public int AmountOfAliveEnemies { get => enemiesInWave.Count; }
-        public int AmountOfSpawnsInWave { get => GetAmountOfSpawnsInWave(); }
+        public int AmountOfSpawnsInWave { get; private set; }
         public int AmountOfEnemiesDestroyedInWave { get; private set; }
         public int AmountOfEnemiesSpawnedInWave { get; private set; }
         public int AmountOFEnemiesReachedEnd { get; private set; }
@@ -21,6 +26,7 @@ namespace TheTD.Spawning
         {
             WaveNumber = waveNumber;
             SpawnersInWave = spawnersInWave;
+            AmountOfSpawnsInWave = GetAmountOfSpawnsInWave();
         }
 
         public void RemoveEnemy(Enemy enemy, bool reachedEnd = false)
@@ -29,6 +35,7 @@ namespace TheTD.Spawning
             enemiesInWave.Remove(enemy);
             AmountOfEnemiesDestroyedInWave++;
             if (reachedEnd) AmountOFEnemiesReachedEnd++;
+            IsComplete = AmountOfAliveEnemies == 0 && AmountOfEnemiesDestroyedInWave == AmountOfSpawnsInWave;
         }
 
         public void AddEnemy(Enemy enemy)
@@ -40,21 +47,28 @@ namespace TheTD.Spawning
 
         public void ResetWaveState()
         {
-            AmountOfEnemiesDestroyedInWave = 0;
-            AmountOfEnemiesSpawnedInWave = 0;
-            AmountOFEnemiesReachedEnd = 0;
-        }
-
-        private bool GetIsComplete()
-        {
-            return AmountOfAliveEnemies == 0 && AmountOfEnemiesDestroyedInWave == AmountOfSpawnsInWave;
+            AmountOfSpawnsInWave = GetAmountOfSpawnsInWave();
+            AmountOfEnemiesDestroyedInWave = IsComplete ? 0 : AmountOfEnemiesDestroyedInWave;
+            AmountOfEnemiesSpawnedInWave = IsComplete ? 0 : AmountOfEnemiesSpawnedInWave;
+            AmountOFEnemiesReachedEnd = IsComplete ? 0 : AmountOFEnemiesReachedEnd;
+            IsComplete = false;
         }
 
         private int GetAmountOfSpawnsInWave()
         {
-            int spawnsInWave = 0;
+            int spawnsInWave = IsComplete ? 0 : AmountOfSpawnsInWave;
             SpawnersInWave.ForEach(o => spawnsInWave += o.GetSpawnsInWave(WaveNumber));
             return spawnsInWave;
+        }
+
+        private void SetIsComplete(bool value)
+        {
+            if (_isComplete == value) return;
+            _isComplete = value;
+            if (_isComplete)
+            {
+                OnWaveComplete?.Invoke(this);
+            }
         }
     }
 }
