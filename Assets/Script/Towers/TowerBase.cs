@@ -102,6 +102,7 @@ namespace TheTD.Towers
         virtual public void BuildTower(Transform parent)
         {
             Instantiate(TowerData.TowerPrefab, parent.position, transform.rotation, parent);
+            //AstarPath.active.Scan();
         }
 
         virtual public bool IsLockedOnTarget(Vector3 aimDirection)

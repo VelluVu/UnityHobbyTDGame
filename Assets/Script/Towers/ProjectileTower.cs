@@ -17,6 +17,7 @@ namespace TheTD.Towers
         protected Damage damage { get => new Damage(Stats.Damage, Stats.CriticalChange, Stats.CriticalDamageMultiplier, Stats.DamageType, _overtimeEffects, transform); }
         virtual protected string ProjectileName { get => GetProjectileName(); }
         virtual protected IProjectile Projectile { get => GetProjectile(); }
+        private Vector3 _aimPosition = Vector3.zero;
 
         [SerializeField] protected GameObject projectilePrefab;
         virtual protected GameObject ProjectilePrefab { get => projectilePrefab = projectilePrefab != null ? projectilePrefab : Resources.Load<GameObject>(PATH_TO_PROJECTILE + ProjectileName); }
@@ -31,8 +32,7 @@ namespace TheTD.Towers
             _currentShootData = CalculateShootData();
             if (!IsEnoughForceToShootTarget()) return null;
             Vector3 predictedPosition = _currentShootData.Position;
-            var aimPosition = predictedPosition;
-            var aimDirection = aimPosition.normalized;
+            var aimDirection = predictedPosition.normalized;
             TurnTurretTowardsAimDirection(aimDirection);
             _isLockedToTarget = IsLockedOnTarget(aimDirection);
             TryToShoot();
@@ -41,7 +41,8 @@ namespace TheTD.Towers
 
         virtual protected ShootData CalculateShootData()
         {
-            _currentShootData = CalculateDirectShootData(_currentTarget.Position + _currentTarget.BodyCenter, ShootPoint.position);
+            _aimPosition = _currentTarget.Position + _currentTarget.BodyCenter;
+            _currentShootData = CalculateDirectShootData(_aimPosition, ShootPoint.position);
             return CalculatePredictedPosition(_currentShootData);
         }
 
@@ -106,6 +107,11 @@ namespace TheTD.Towers
         virtual protected string GetProjectileName()
         {
             return DEFAULT_PROJECTILE_NAME;
+        }
+
+        private void OnDrawGizmos() {
+            Gizmos.color = Color.red;
+            Gizmos.DrawSphere(_aimPosition, 0.15f);
         }
     }
 }

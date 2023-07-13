@@ -1,5 +1,50 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1632139574561522909
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6840599840169039960}
+  - component: {fileID: 6732951312848800476}
+  m_Layer: 11
+  m_Name: Collider
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6840599840169039960
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1632139574561522909}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7605161904656018526}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &6732951312848800476
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1632139574561522909}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 1, y: 1.1, z: 1}
+  m_Center: {x: 0, y: 0.45, z: 0}
 --- !u!1 &6500879250709107759
 GameObject:
   m_ObjectHideFlags: 0
@@ -11,7 +56,7 @@ GameObject:
   - component: {fileID: 1900709485167849504}
   - component: {fileID: 4976400888317487661}
   - component: {fileID: 7409489541060969242}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: BaseMesh
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -28,6 +73,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0.3, z: 0}
   m_LocalScale: {x: 0.9, y: 0.6, z: 0.9}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 7605161904656018526}
   m_RootOrder: 0
@@ -51,6 +97,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -91,7 +138,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7605161904656018526}
   - component: {fileID: 6052532778654749859}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: BlockTower
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -108,8 +155,10 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1900709485167849504}
+  - {fileID: 6840599840169039960}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -125,12 +174,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b7687672e6585ff449dfd9f5c830a76a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isLockedToTarget: 0
-  targetFindInterval: 1
-  turnSpeed: 2
-  shootInterval: 1
-  maxRange: 6
-  debugDrawInterval: 1
-  turretRotator: {fileID: 0}
-  shootPoint: {fileID: 0}
-  target: {fileID: 0}
+  _isLockedToTarget: 0
+  _killCount: 0
+  _minimumLockOnEnemyDotProductRatio: 0.95
+  _debugDrawInterval: 1
+  _searchTargetMethod: 0
+  _turretRotator: {fileID: 0}
+  _shootPoint: {fileID: 0}

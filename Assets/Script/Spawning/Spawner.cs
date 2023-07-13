@@ -18,7 +18,7 @@ namespace TheTD.Spawning
         [Header("Spawning Parameters")]
         public int waveToParticipate = 0;
         [SerializeField]private Transform _endPointForSpawn;
-        public Transform EndPointForSpawn { get => _endPointForSpawn = _endPointForSpawn != null ? _endPointForSpawn : GameObject.FindGameObjectWithTag(END_POINT_TAG).transform; }
+        public Transform EndTransform { get => _endPointForSpawn = _endPointForSpawn != null ? _endPointForSpawn : GameObject.FindGameObjectWithTag(END_POINT_TAG).transform; }
         public SpawnSet spawnSet;
         public List<Enemy> enemies = new List<Enemy>();
 
@@ -78,7 +78,7 @@ namespace TheTD.Spawning
             var prefab = LoadSpawnPrefab(enemyType);
             var spawnPosition = CalculateSpawnPosition(prefab.transform);
             var enemy = Instantiate(prefab, spawnPosition, transform.rotation).GetComponent<Enemy>();
-            enemy.Target = EndPointForSpawn;
+            enemy.Target = EndTransform;
             AddEnemy(enemy);
         }
 

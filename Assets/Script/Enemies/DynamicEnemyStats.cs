@@ -1,13 +1,13 @@
+using Pathfinding;
 using TheTD.StatSystem;
 using UnityEngine;
-using UnityEngine.AI;
 
 namespace TheTD.Enemies
 {
     [System.Serializable]
     public class DynamicEnemyStats
     {
-        private NavMeshAgent agent;
+        private AIPath _aiPath;
         public EnemyBaseStats BaseStats { get; }
 
         [SerializeField] protected Stat _currentHealth;
@@ -34,10 +34,10 @@ namespace TheTD.Enemies
         [SerializeField] private Stat _acceleration;
         public Stat Acceleration { get => _acceleration; internal set => _acceleration = value; }
 
-        public DynamicEnemyStats(EnemyBaseStats baseStats, NavMeshAgent agent)
+        public DynamicEnemyStats(EnemyBaseStats baseStats, AIPath aiPath)
         {
             BaseStats = baseStats;
-            this.agent = agent;
+            _aiPath = aiPath;
             MaxHealth = new Stat(BaseStats.MaxHealth);
             CurrentHealth = new Stat(MaxHealth.Value, StatFlags.CurrentHealth);
             Damage = new Stat(BaseStats.Damage);
@@ -46,9 +46,9 @@ namespace TheTD.Enemies
             MoveSpeed = new Stat(BaseStats.MoveSpeed);
             TurnSpeed = new Stat(BaseStats.TurnSpeed);
             Acceleration = new Stat(BaseStats.Acceleration);
-            agent.speed = MoveSpeed.BaseValue;
-            agent.angularSpeed = TurnSpeed.BaseValue;
-            agent.acceleration = Acceleration.BaseValue;
+            _aiPath.maxSpeed = MoveSpeed.BaseValue;
+            _aiPath.rotationSpeed = TurnSpeed.BaseValue;
+            _aiPath.maxAcceleration = Acceleration.BaseValue;
             ListenAgentStatsChange();
         }
 
@@ -62,9 +62,9 @@ namespace TheTD.Enemies
             MoveSpeed.BaseValue = BaseStats.MoveSpeed.BaseValue;
             TurnSpeed.BaseValue = BaseStats.TurnSpeed.BaseValue;
             Acceleration.BaseValue = BaseStats.Acceleration.BaseValue;
-            agent.speed = MoveSpeed.BaseValue;
-            agent.angularSpeed = TurnSpeed.BaseValue;
-            agent.acceleration = Acceleration.BaseValue;
+            _aiPath.maxSpeed = MoveSpeed.BaseValue;
+            _aiPath.rotationSpeed = TurnSpeed.BaseValue;
+            _aiPath.maxAcceleration = Acceleration.BaseValue;
         }
 
         public void ListenAgentStatsChange()
@@ -76,17 +76,17 @@ namespace TheTD.Enemies
 
         private void OnAccelerationChange(Stat stat)
         {
-            agent.acceleration = stat.Value;
+            _aiPath.maxAcceleration = stat.Value;
         }
 
         private void OnTurningSpeedChange(Stat stat)
         {
-            agent.angularSpeed = stat.Value;
+            _aiPath.rotationSpeed = stat.Value;
         }
 
         private void OnMoveSpeedChange(Stat stat)
         {
-            agent.speed = stat.Value;
+            _aiPath.maxSpeed = stat.Value;
         }
     }
 }

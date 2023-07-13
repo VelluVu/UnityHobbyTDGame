@@ -9,10 +9,13 @@ namespace TheTD.Building
     /// </summary>
     public class WorldObstacleControl : MonoBehaviour
     {
+
+        private const string PATH_TO_OBSTACLES_FOLDER = "Prefabs/Obstacles/";
         public static WorldObstacleControl Instance;
         public List<Obstacle> obstacles = new List<Obstacle>();
+        public Transform obstacleHolder;
 
-        public delegate void ObstacleDelegate();
+        public delegate void ObstacleDelegate(Obstacle obstacle);
         public static event ObstacleDelegate OnObstacleAdd;
         public static event ObstacleDelegate OnObstacleRemove;
 
@@ -45,42 +48,17 @@ namespace TheTD.Building
 
         }
 
-        private void AddObstacleRuntime()
+        private void RemoveObstacleRuntime(Obstacle obstacle)
+        {
+            OnObstacleRemove.Invoke(obstacle);
+        }
+
+        private void AddObstacleRuntime(Vector3 position, Quaternion orientation, string obstacleName = "CubeObstacle")
         {
             //Create new world obstacle
-            OnObstacleAdd?.Invoke();
-        }
-
-        private void OnPathBlocked(Vector3 position)
-        {
-            DestroyClosestObstacle(position);
-        }
-
-        private void DestroyClosestObstacle(Vector3 position)
-        {
-            var obstacle = FindClosestObstacle(position);
-            obstacles.Remove(obstacle);
-            OnObstacleRemove?.Invoke();
-            Destroy(obstacle.gameObject);
-            obstacles.TrimExcess();
-        }
-
-        public Obstacle FindClosestObstacle(Vector3 position)
-        {
-            var closest = obstacles[0];
-
-            for (int i = 0; i < obstacles.Count; i++)
-            {
-                var shortestDistance = Vector3.Distance(position, closest.transform.position);
-                var distanceToCurrentObstacle = Vector3.Distance(position, obstacles[i].transform.position);
-
-                if (distanceToCurrentObstacle < shortestDistance)
-                {
-                    closest = obstacles[i];
-                }
-            }
-
-            return closest;
+            var obstaclePrefab = Resources.Load<GameObject>(PATH_TO_OBSTACLES_FOLDER + obstacleName);
+            Obstacle obstacle = Instantiate(obstaclePrefab, position, orientation, obstacleHolder).GetComponent<Obstacle>();
+            OnObstacleAdd?.Invoke(obstacle);
         }
 
         public void FindAllObstacles()

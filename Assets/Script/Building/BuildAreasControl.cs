@@ -48,16 +48,16 @@ namespace TheTD.Building
 
         private void OnBuildButtonClicked(ITowerLoadData towerData)
         {
-            BuildOnSelectedArea(towerData);
+            BuildOnSelectedSpot(towerData);
         }
 
-        public void SellOnSelectedArea()
+        public void SellOnSelectedSpot()
         {
             if (selectedBuildArea == null || !GameControl.Instance.EnableBuilding) return;
             selectedBuildArea.SellOnSelectedSpot();
         }
 
-        public void BuildOnSelectedArea(ITowerLoadData towerData)
+        public void BuildOnSelectedSpot(ITowerLoadData towerData)
         {
             if (selectedBuildArea == null || !GameControl.Instance.EnableBuilding) return;
             selectedBuildArea.BuildOnSelectedSpot(towerData);

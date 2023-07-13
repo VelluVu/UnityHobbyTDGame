@@ -326,7 +326,7 @@ public class CustomGrid : MonoBehaviour
         {
             Debug.LogFormat(OBSTACLE_ON_GRID);
             var buildSpotsInArea = FindBuildSpotsBetweenPositions(bounds);
-            buildSpotsInArea.ForEach(o => o.HasConstruction = true);
+            buildSpotsInArea.ForEach(o => o.IsOccupied = true);
         }
     }
 
@@ -334,7 +334,7 @@ public class CustomGrid : MonoBehaviour
     {
         if (_mesh != null) return _mesh;
         if (GetComponentInChildren<ProBuilderMesh>() != null) return GetComponentInChildren<ProBuilderMesh>();
-        return ShapeGenerator.GeneratePlane(PivotLocation.FirstVertex, Size.x, Size.y, cellsAmount.x, cellsAmount.y, Axis.Up);
+        return ShapeGenerator.GeneratePlane(PivotLocation.FirstCorner, Size.x, Size.y, cellsAmount.x, cellsAmount.y, Axis.Up);
     }
 }
 

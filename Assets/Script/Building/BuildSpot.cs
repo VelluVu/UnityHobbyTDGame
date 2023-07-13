@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -7,12 +8,16 @@ namespace TheTD.Building
     [System.Serializable]
     public class BuildSpot
     {
+        public bool HasOccupiedNeighbours { get => GetHasOccupiedNeighbours(); }
+        public float Height { get => CenterPositionInWorld.y + Size; }
         public Vector3 CenterPositionLocal { get => new Vector3(BottomLeftLocalPosition.x + Size * 0.5f, BottomLeftLocalPosition.y, BottomLeftLocalPosition.z + Size * 0.5f); }
         public Vector3 CenterPositionInWorld { get => new Vector3(BottomLeftPositionInWorld.x + Size * 0.5f, BottomLeftPositionInWorld.y, BottomLeftPositionInWorld.z + Size * 0.5f); }
         public Vector3 BottomRightCornerPositionInWorld { get => new Vector3(BottomLeftPositionInWorld.x + Size, BottomLeftPositionInWorld.y, BottomLeftPositionInWorld.z); }
         public Vector3 TopRightCornerPositionInWorld { get => new Vector3(BottomLeftPositionInWorld.x + Size, BottomLeftPositionInWorld.y, BottomLeftPositionInWorld.z + Size); }
         public Vector3 TopLeftCornerPositionInWorld { get => new Vector3(BottomLeftPositionInWorld.x, BottomLeftPositionInWorld.y, BottomLeftPositionInWorld.z + Size); }
-        public float Height { get => CenterPositionInWorld.y + Size; }
+
+        [SerializeField]private Bounds _bounds;
+        public Bounds Bounds { get => _bounds = (_bounds != null || _bounds.size != Vector3.zero) ? _bounds : new Bounds(CenterPositionInWorld + Vector3.up * 0.5f, new Vector3(Size, Size, Size)); }
 
         [SerializeField] private Vector2Int _gridPosition;
         public Vector2Int GridPosition { get => _gridPosition; private set => _gridPosition = value; }
@@ -22,8 +27,8 @@ namespace TheTD.Building
         private Construction _construction;
         public Construction Construction { get => _construction; set => _construction = value; }
 
-        [SerializeField] private bool _hasConstruction;
-        public bool HasConstruction { get => _hasConstruction; set => _hasConstruction = value; }
+        [SerializeField] private bool _isOccupied;
+        public bool IsOccupied { get => _isOccupied; set => _isOccupied = value; }
 
         [SerializeField] private bool _isInvalidSpot;
         public bool IsInvalidSpot { get => _isInvalidSpot; set => _isInvalidSpot = value; }
@@ -42,8 +47,9 @@ namespace TheTD.Building
             GridPosition = gridPosition;
             BottomLeftLocalPosition = localPosition;
             BottomLeftPositionInWorld = worldPosition;
-            HasConstruction = isOccupied;
+            IsOccupied = isOccupied;
             Size = size;              
+            _bounds = new Bounds(CenterPositionInWorld + Vector3.up * 0.5f, new Vector3(Size * 0.99f, Size, Size * 0.99f));
         }
 
         public bool IsPositionInBounds(Vector3 position)
@@ -62,14 +68,29 @@ namespace TheTD.Building
             NeighbourBuildSpots = neighbourSpots;
         }
 
-        public List<BuildSpot> FindNeighboursWithConstructions()
+        public List<BuildSpot> GetNeighboursWithConstructions()
         {
-            return NeighbourBuildSpots.Values.ToList().FindAll(neighbour => neighbour.HasConstruction);
+            return NeighbourBuildSpots.Values.ToList().FindAll(neighbour => neighbour.IsOccupied);
         }
 
-        public List<BuildSpot> FindNeighboursMarkedInvalidWithNoConstruction()
+        public List<BuildSpot> GetNeighboursMarkedInvalidWithNoConstruction()
         {
-            return NeighbourBuildSpots.Values.ToList().FindAll(neighbour => neighbour.IsInvalidSpot && !neighbour.HasConstruction);
+            return NeighbourBuildSpots.Values.ToList().FindAll(neighbour => neighbour.IsInvalidSpot && !neighbour.IsOccupied);
+        }
+
+        private bool GetHasOccupiedNeighbours()
+        {
+            if (NeighbourBuildSpots.Count < 8)
+            {
+                return true;
+            }
+
+            foreach (var neighbour in NeighbourBuildSpots.Values)
+            {
+                if (neighbour.IsOccupied || neighbour.IsInvalidSpot) return true;
+            }
+
+            return false;
         }
     }
 }

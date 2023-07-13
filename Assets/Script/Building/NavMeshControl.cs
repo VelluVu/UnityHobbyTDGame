@@ -1,9 +1,11 @@
-using TheTD.Spawning;
 using Unity.AI.Navigation;
 using UnityEngine;
 
 namespace TheTD.Building
 {
+    /// <summary>
+    /// THIS IS OLD, USING A* PROJECT PRO INSTEAD OF UNITY NAVMESH
+    /// </summary>
     public class NavMeshControl : MonoBehaviour
     {
         public static NavMeshControl Instance { get; private set; }
@@ -39,12 +41,12 @@ namespace TheTD.Building
             BuildArea.OnBuildingRemove += OnBuildingRemove;
         }
 
-        private void OnObstacleAdd()
+        private void OnObstacleAdd(Obstacle obstacle)
         {
             RebuildNavMesh();
         }
 
-        private void OnObstacleRemove()
+        private void OnObstacleRemove(Obstacle obstacle)
         {
             RebuildNavMesh();
         }

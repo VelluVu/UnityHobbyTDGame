@@ -1,13 +1,13 @@
+using Pathfinding;
 using TheTD.Core;
 using UnityEngine;
-using UnityEngine.AI;
 
 namespace TheTD.Building
 {
     public class Construction : MonoBehaviour
     {
         private const string CONSTRUCTION_GAME_OBJECT_NAME = "Construction";
-        private const string NAV_MESH_OBSTACLE_PREFAB_PATH = "Prefabs/NavMeshObstacle";
+        //private const string NAV_MESH_OBSTACLE_PREFAB_PATH = "Prefabs/NavMeshObstacle";
 
         [SerializeField]private int buildOnWave = 0;
         public bool IsNew { get; internal set; }
@@ -18,11 +18,11 @@ namespace TheTD.Building
         private BuildSpot buildSpot;
         public BuildSpot BuildSpot { get => buildSpot; private set => buildSpot = value; }
 
-        private NavMeshObstacle navMeshObstacle;
-        public NavMeshObstacle NavMeshObstacle { get => navMeshObstacle; private set => navMeshObstacle = value; }
+        //private NavMeshObstacle navMeshObstacle;
+        //public NavMeshObstacle NavMeshObstacle { get => navMeshObstacle; private set => navMeshObstacle = value; }
 
-        private GameObject navMeshObstaclePrefab;
-        public GameObject NavMeshObstaclePrefab { get => navMeshObstaclePrefab = navMeshObstaclePrefab != null ? navMeshObstaclePrefab : Resources.Load<GameObject>(NAV_MESH_OBSTACLE_PREFAB_PATH); }
+        //private GameObject navMeshObstaclePrefab;
+        //public GameObject NavMeshObstaclePrefab { get => navMeshObstaclePrefab = navMeshObstaclePrefab != null ? navMeshObstaclePrefab : Resources.Load<GameObject>(NAV_MESH_OBSTACLE_PREFAB_PATH); }
 
         public void Start()
         {
@@ -39,10 +39,11 @@ namespace TheTD.Building
             IsNew = true;
             buildOnWave = GameControl.Instance.CurrentSpawnWave;
             gameObject.name = CONSTRUCTION_GAME_OBJECT_NAME;
+            gameObject.layer = LayerMask.NameToLayer("Building");
             BuildSpot = buildSpot;
-            transform.position = BuildSpot.CenterPositionInWorld;
-            NavMeshObstacle = Instantiate(NavMeshObstaclePrefab, BuildSpot.CenterPositionInWorld + Vector3.up * 0.5f, Quaternion.identity).GetComponent<NavMeshObstacle>();
-            NavMeshObstacle.transform.SetParent(transform);
+            transform.position = BuildSpot.CenterPositionInWorld;          
+            //NavMeshObstacle = Instantiate(NavMeshObstaclePrefab, BuildSpot.CenterPositionInWorld + Vector3.up * 0.5f, Quaternion.identity).GetComponent<NavMeshObstacle>();
+            //NavMeshObstacle.transform.SetParent(transform);
             Tower = towerData.Tower;           
         }
 
