@@ -2,10 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ActionBase : ActionScriptableObject
+namespace ScriptableFiniteStateMachine
 {
-    public override void Run(FiniteStateMachine fsm)
+    public class ActionBase : ActionScriptableObject
     {
-        this.fsm = fsm;
+        public override void Run(FiniteStateMachine fsm)
+        {
+            
+        }
     }
 }

@@ -1,14 +1,16 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "Transition", menuName = "ScriptableObjects/FiniteStateMachine/Transitions/TransitionBase")]
-public class TransitionBase : TransitionScriptableObject
+namespace ScriptableFiniteStateMachine
 {
-    public override void Run(FiniteStateMachine fsm)
+    [CreateAssetMenu(fileName = "Transition", menuName = "ScriptableObjects/FiniteStateMachine/Transitions/TransitionBase")]
+    public class TransitionBase : TransitionScriptableObject
     {
-        this.fsm = fsm;
-        if(decision.Decide(fsm) && !(trueState is RemainInState))
-            fsm.CurrentState = trueState;
-        else if(!(falseState is RemainInState))
-            fsm.CurrentState = falseState;
+        public override void Run(FiniteStateMachine fsm)
+        {
+            if (decision.Decide(fsm) && !(trueState is RemainInState))
+                fsm.ChangeState(trueState);
+            else if (!decision.Decide(fsm) && !(falseState is RemainInState))
+                fsm.ChangeState(falseState);
+        }
     }
 }

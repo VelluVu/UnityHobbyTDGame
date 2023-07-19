@@ -1,9 +1,9 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class ActionScriptableObject : ScriptableObject
+namespace ScriptableFiniteStateMachine
 {
-    protected FiniteStateMachine fsm;
-    public abstract void Run(FiniteStateMachine fsm);
+    public abstract class ActionScriptableObject : ScriptableObject
+    {
+        public abstract void Run(FiniteStateMachine fsm);
+    }
 }

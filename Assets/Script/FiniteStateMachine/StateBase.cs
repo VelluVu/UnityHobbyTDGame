@@ -1,33 +1,37 @@
 using System.Linq;
 using UnityEngine;
 
-public class StateBase : StateScriptableObject
+namespace ScriptableFiniteStateMachine
 {
-    private const string ENTER_STATE_FORMAT = "Enter {0} state";
-    private const string LEAVE_STATE_FORMAT = "Leave {0} state";
-
-    public override void Enter(FiniteStateMachine fsm)
+    public class StateBase : StateScriptableObject
     {
-        Debug.LogFormat(ENTER_STATE_FORMAT, name);
-        this.fsm = fsm;
-        actions = actions.OrderBy(o => o.order).ToList();
-    }
+        private const string ENTER_STATE_FORMAT = "Enter {0} state";
+        private const string LEAVE_STATE_FORMAT = "Leave {0} state";
 
-    public override void Exit()
-    {
-        Debug.LogFormat(LEAVE_STATE_FORMAT, name);
-    }
-
-    public override void Run()
-    {
-        for (int i = 0; i < actions.Count; i++)
+        public override void Enter(FiniteStateMachine fsm)
         {
-            actions[i].action.Run(fsm);
+            Debug.LogFormat(ENTER_STATE_FORMAT, name);
+            actions = actions.OrderBy(o => o.order).ToList();
         }
 
-        for (int i = 0; i < transitions.Count; i++)
+        public override void Exit(FiniteStateMachine fsm)
         {
-            transitions[i].transition.Run(fsm);
+            Debug.LogFormat(LEAVE_STATE_FORMAT, name);
+        }
+
+        public override void Run(FiniteStateMachine fsm)
+        {
+            //Debug.Log("Running " + name);
+
+            for (int i = 0; i < actions.Count; i++)
+            {
+                actions[i].action.Run(fsm);
+            }
+
+            for (int i = 0; i < transitions.Count; i++)
+            {
+                transitions[i].transition.Run(fsm);
+            }
         }
     }
 }

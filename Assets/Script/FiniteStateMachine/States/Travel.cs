@@ -1,7 +1,10 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "Travel", menuName = "ScriptableObjects/FiniteStateMachine/States/Travel")]
-public class Travel : StateBase
+namespace ScriptableFiniteStateMachine
 {
-    
+    [CreateAssetMenu(fileName = "Travel", menuName = "ScriptableObjects/FiniteStateMachine/States/Travel")]
+    public class Travel : StateBase
+    {
+
+    }
 }

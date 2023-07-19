@@ -9,6 +9,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a014e248de958c34aa3c6973ccc9c1ec, type: 3}
-  m_Name: DestinationReached
+  m_Script: {fileID: 11500000, guid: 71cf867442120b44eafc0742b2978a02, type: 3}
+  m_Name: ReadyToTravel
   m_EditorClassIdentifier: 

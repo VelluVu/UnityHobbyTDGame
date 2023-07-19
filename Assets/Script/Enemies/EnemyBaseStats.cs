@@ -33,13 +33,6 @@ namespace TheTD.Enemies
         [SerializeField] private Stat _experienceReward = null;
         public Stat ExperienceReward { get => _experienceReward; }
 
-        [SerializeField] private Stat _moveSpeed = null;
-        public Stat MoveSpeed { get => _moveSpeed; }
-
-        [SerializeField] private Stat _turnSpeed = null;
-        public Stat TurnSpeed { get => _turnSpeed; }
-
-        [SerializeField] private Stat _acceleration = null;
-        public Stat Acceleration { get => _acceleration; }
+        public MovementStats movementStats;
     }
 }

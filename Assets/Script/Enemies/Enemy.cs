@@ -1,31 +1,22 @@
 using Pathfinding;
+using ScriptableFiniteStateMachine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TheTD.DamageSystem;
 using UnityEngine;
-using UnityEngine.AI;
 
 namespace TheTD.Enemies
 {
-    [RequireComponent(typeof(AIPath))]
     public abstract class Enemy : MonoBehaviour, IDamageable, ITargetable
     {
-        //TODO:
-        //should have enemy state machine to control enemy pathfinding and change from MOVE to different states like STUN, or FLEEING, MOVEFAST, DEAD, STOP
-        //path should never be blocked, make build area to handle bad wrong tower placements!
-        //should listen the state machine changes and launch events depending on the event.
-
-        private const string END_POINT_TAG = "EndPoint";
         private const string SHADER_ALPHACLIPSTATE_PROPERTY_NAME = "_AlphaClipScale";
-        private const string ENEMY_PATH_PENDING = "Enemy path pending";
         private const string PASSTHROUGH_LAYER_NAME = "PassThrough";
         private const string ENEMY_LAYER_NAME = "Enemy";
         protected const string PATH_TO_STATS_FOLDER = "ScriptableObjects/Enemies/Stats/";
         protected const string BASE_STATS_NAME = "BaseStats";
-        public float originalAgentRadius = 0.3f;
-        public float shrinkedAgentRadius = 0.1f;
+        private const string END_POINT_TAG = "EndPoint";
         private float dissolveDelay = 1f;
 
         [SerializeField] protected EnemyType type = EnemyType.Goblin;
@@ -33,9 +24,9 @@ namespace TheTD.Enemies
         protected List<Coroutine> damageTakeCoroutines = new List<Coroutine>();
 
         protected virtual string FULL_PATH_TO_ENEMY_STATS { get => PATH_TO_STATS_FOLDER + type.ToString() + BASE_STATS_NAME; }
-        
-        protected bool _isReachedEnd = false;
-        public bool IsReachedEnd { get => _isReachedEnd; private set => SetReachedEnd(value); }
+
+        protected bool _hasReachedEnd = false;
+        public bool HasReachedEnd { get => _hasReachedEnd; private set => SetReachedEnd(value); }
 
         private bool _isDead;
         virtual public bool IsDead { get => _isDead; set => SetIsDead(value); }
@@ -43,24 +34,12 @@ namespace TheTD.Enemies
         [Tooltip("Automatically loads if reference is left empty, uses enemy name when loading from resources.")]
         [SerializeField] protected EnemyBaseStats _baseStats;
         public EnemyBaseStats BaseStats { get => _baseStats = _baseStats != null ? _baseStats : GetEnemyBaseStats(); }
-        
+
         [SerializeField] protected DynamicEnemyStats _stats;
         public DynamicEnemyStats Stats { get => _stats; }
 
-        //protected NavMeshAgent _agent;
-        //virtual public NavMeshAgent Agent { get => _agent = _agent != null ? _agent : GetComponentInChildren<NavMeshAgent>(); }
-
-        protected FiniteStateMachine _fsm;
-        public FiniteStateMachine FSM {get => _fsm = _fsm != null ? _fsm : GetComponent<FiniteStateMachine>(); }
-
-        protected AIPath _aiPath;
-        virtual public AIPath AIPath { get => _aiPath = _aiPath != null ? _aiPath : GetComponent<AIPath>(); }
-
-        protected Seeker _seeker;
-        virtual public Seeker Seeker { get => _seeker = _seeker != null ? _seeker : GetComponent<Seeker>(); }   
-
-        protected Transform _target;
-        virtual public Transform Target { get => _target = _target != null ? _target : GameObject.FindGameObjectWithTag(END_POINT_TAG).transform; set => _target = value; }
+        protected EnemyFiniteStateMachine _fsm;
+        public EnemyFiniteStateMachine FSM { get => _fsm = _fsm != null ? _fsm : GetComponent<EnemyFiniteStateMachine>(); }
 
         protected Renderer _renderer;
         virtual public Renderer Renderer { get => _renderer = _renderer != null ? _renderer : GetComponentInChildren<Renderer>(); }
@@ -71,9 +50,8 @@ namespace TheTD.Enemies
         private Rigidbody _rigidBody;
         public Rigidbody Rigidbody { get => _rigidBody = _rigidBody != null ? _rigidBody : GetComponent<Rigidbody>(); }
 
-        protected EnemyBody _enemyBody;
-
-        virtual public EnemyBody Body { get => _enemyBody = _enemyBody != null ? _enemyBody : GetComponentInChildren<EnemyBody>(); }
+        protected EnemyBody _body;
+        virtual public EnemyBody Body { get => _body = _body != null ? _body : GetComponentInChildren<EnemyBody>(); }
 
         public bool IsDestroyed => IsDead;
 
@@ -87,7 +65,7 @@ namespace TheTD.Enemies
 
         public Vector3 BodyCenter => Body.CenterLocal;
 
-        public Vector3 Velocity => AIPath.velocity;
+        public Vector3 Velocity => Rigidbody.velocity;
 
         public delegate void EnemyDelegate(Enemy enemy);
         public static event EnemyDelegate OnReachEnd;
@@ -102,21 +80,19 @@ namespace TheTD.Enemies
 
         private void Awake()
         {
-            _stats = new DynamicEnemyStats(BaseStats, AIPath);
+            _stats = new DynamicEnemyStats(BaseStats);
         }
 
         virtual public void StartMoving()
         {
             ResetEnemy();
-            StartCoroutine(CheckAgentPathState());
         }
 
         virtual public void ResetEnemy()
         {
-            IsReachedEnd = false;
+            HasReachedEnd = false;
             IsDead = false;
             Stats.ResetStatsBaseValues();
-            AIPath.destination = Target.transform.position + Vector3.up * Body.CenterLocal.y;
         }
 
         virtual protected void Start()
@@ -138,32 +114,19 @@ namespace TheTD.Enemies
         {
             if (other.CompareTag(END_POINT_TAG))
             {
-                IsReachedEnd = true;
+                HasReachedEnd = true;
             }
         }
 
         virtual protected bool CheckIfDie()
-        {         
-            return Stats.CurrentHealth.BaseValue <= 0f;
-        }
-
-        virtual protected IEnumerator CheckAgentPathState()
         {
-            while (true)
-            {
-                if (AIPath.pathPending == true)
-                {
-                    Debug.Log(ENEMY_PATH_PENDING);
-                    OnPathBlocked?.Invoke(this);
-                }
-                yield return new WaitForSeconds(1f);
-            }
+            return Stats.CurrentHealth.BaseValue <= 0f;
         }
 
         virtual protected IEnumerator DestroySmoothly(float delay)
         {
             float dissolveTime = 0f;
-            yield return new WaitForSeconds(delay); //give physics body time to take impact before dissolve
+            yield return new WaitForSeconds(delay);
             ClearStuckProjectiles();
 
             while (dissolveTime <= 1f)
@@ -195,9 +158,7 @@ namespace TheTD.Enemies
             if (_isDead == value) return;
             _isDead = value;
             EnableEnemyPassThroughLayerWhenDead();
-            StopEnemyWhenDead();
-            ChangeAgentRadius(_isDead ? shrinkedAgentRadius : originalAgentRadius);
-            EnableEnemyBodyRotationWhenDead();         
+            EnableEnemyBodyRotationWhenDead();
         }
 
         private void StopDamageTakeCoroutines()
@@ -206,19 +167,9 @@ namespace TheTD.Enemies
             damageTakeCoroutines.ForEach(o => StopCoroutine(o));
         }
 
-        virtual protected void ChangeAgentRadius(float newAgentRadius)
-        {
-            AIPath.radius = newAgentRadius;
-        }
-
         virtual protected void EnableEnemyBodyRotationWhenDead()
         {
             Rigidbody.constraints = _isDead ? RigidbodyConstraints.None : RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezeRotationX;
-        }
-
-        virtual protected void StopEnemyWhenDead()
-        {
-            AIPath.isStopped = _isDead;
         }
 
         virtual protected void EnableEnemyPassThroughLayerWhenDead()
@@ -229,9 +180,10 @@ namespace TheTD.Enemies
 
         virtual protected void SetReachedEnd(bool value)
         {
-            if (_isReachedEnd == value) return;
-            _isReachedEnd = value;
-            if (_isReachedEnd)
+            if (_hasReachedEnd == value) return;
+            Debug.Log("Reached End: " + value);
+            _hasReachedEnd = value;
+            if (_hasReachedEnd)
             {
                 StopDamageTakeCoroutines();
                 StartCoroutine(DestroySmoothly(dissolveDelay));
@@ -249,9 +201,9 @@ namespace TheTD.Enemies
         {
             finalDamage.OnDamageCalculated -= OnTakeDamageCalculated;
             ReduceTheHealth(finalDamage);
-           
+
             if (finalDamage.OvertimeEffects != null && finalDamage.OvertimeEffects.Any())
-            {              
+            {
                 finalDamage.OvertimeEffects.ForEach(o => damageTakeCoroutines.Add(StartCoroutine(TakeOvertimeDamage(o, finalDamage))));
             }
         }
@@ -276,7 +228,7 @@ namespace TheTD.Enemies
         {
             OnGoingOvertimeEffects.Add(overtimeEffect);
             for (int i = 0; i < overtimeEffect.NumberOfTicks; i++)
-            {        
+            {
                 yield return new WaitForSeconds(overtimeEffect.Interval);
                 ReduceTheHealth(damage, overtimeEffect);
             }
@@ -290,13 +242,6 @@ namespace TheTD.Enemies
             return loadedBaseStats;
         }
 
-        /// <summary>
-        /// Get these from items, 
-        /// or creature specific, 
-        /// these are applied to reduce, 
-        /// or increase the taken damage.
-        /// </summary>
-        /// <returns></returns>
         public abstract List<IModifier> GetDefensiveModifiers();
     }
 }

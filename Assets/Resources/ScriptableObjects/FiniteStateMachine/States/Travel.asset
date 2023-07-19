@@ -16,5 +16,6 @@ MonoBehaviour:
   - action: {fileID: 11400000, guid: eb3caf7c2912bad4fb29e65d2dc7987c, type: 2}
     order: 0
   transitions:
-  - transition: {fileID: 11400000, guid: 8c4508c275ffe584ebb72bebe83a9a3d, type: 2}
+  - transition: {fileID: 11400000, guid: 727d8e90e1a33cf469d075dea2e18162, type: 2}
+  - transition: {fileID: 11400000, guid: b3cdad50a627fb0468efa7082234d7d9, type: 2}
   decisions: []

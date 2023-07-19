@@ -10,8 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 60e3dd57f77c6514c8a7c584d3064329, type: 3}
-  m_Name: TransitionToIdle1
+  m_Name: TransitionToIdle02
   m_EditorClassIdentifier: 
-  decision: {fileID: 11400000, guid: 02f06855871240d4cb2df626e01ca401, type: 2}
+  decision: {fileID: 11400000, guid: 3e29bbe6680c7ef448fdebf93f22c2d4, type: 2}
   trueState: {fileID: 11400000, guid: 3e07d68455beb774684662585b3a8ffe, type: 2}
   falseState: {fileID: 11400000, guid: 14b3904b9c2374c4eb60ea5d2fbecabd, type: 2}

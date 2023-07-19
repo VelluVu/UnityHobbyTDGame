@@ -1,7 +1,9 @@
 using UnityEngine;
 
-public abstract class DecisionScriptableObject : ScriptableObject
+namespace ScriptableFiniteStateMachine
 {
-    protected FiniteStateMachine fsm;
-    public abstract bool Decide(FiniteStateMachine fsm);
+    public abstract class DecisionScriptableObject : ScriptableObject
+    {
+        public abstract bool Decide(FiniteStateMachine fsm);
+    }
 }

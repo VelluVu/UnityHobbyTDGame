@@ -39,12 +39,13 @@ MonoBehaviour:
   _experienceReward:
     BaseValue: 2
     _statFlags: 32768
-  _moveSpeed:
-    BaseValue: 0.5
-    _statFlags: 1024
-  _turnSpeed:
-    BaseValue: 90
-    _statFlags: 2048
-  _acceleration:
-    BaseValue: 100
-    _statFlags: 8192
+  movementStats:
+    _moveSpeed:
+      BaseValue: 0.5
+      _statFlags: 1024
+    _turnSpeed:
+      BaseValue: 90
+      _statFlags: 2048
+    _acceleration:
+      BaseValue: 0.1
+      _statFlags: 8192

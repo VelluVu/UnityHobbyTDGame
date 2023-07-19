@@ -78,7 +78,7 @@ namespace TheTD.Spawning
             var prefab = LoadSpawnPrefab(enemyType);
             var spawnPosition = CalculateSpawnPosition(prefab.transform);
             var enemy = Instantiate(prefab, spawnPosition, transform.rotation).GetComponent<Enemy>();
-            enemy.Target = EndTransform;
+            enemy.FSM.PathControl.Destination = EndTransform.position;
             AddEnemy(enemy);
         }
 
