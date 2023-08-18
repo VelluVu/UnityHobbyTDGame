@@ -44,7 +44,7 @@ MonoBehaviour:
       BaseValue: 0.5
       _statFlags: 1024
     _turnSpeed:
-      BaseValue: 90
+      BaseValue: 180
       _statFlags: 2048
     _acceleration:
       BaseValue: 0.1

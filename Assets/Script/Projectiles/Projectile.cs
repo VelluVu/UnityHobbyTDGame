@@ -24,6 +24,7 @@ namespace TheTD.Projectiles
         protected DynamicProjectileStats _stats;
         public DynamicProjectileStats Stats { get => GetDynamicStats(); }
         public Transform OriginalParent { get; private set; }
+        public ITargetable Target { get; private set; }
 
         private Rigidbody _rigidbody;
         public Rigidbody Rigidbody { get => _rigidbody = _rigidbody != null ? _rigidbody : GetComponent<Rigidbody>(); }
@@ -39,12 +40,14 @@ namespace TheTD.Projectiles
             SetProjectileBasedDamageModifiers();         
         }
 
-        virtual public void Launch(Vector3 startPosition, Vector3 velocity, Transform parent, Damage damage)
+        virtual public void Launch(TrajectoryData trajectoryData, Transform parent, Damage damage, ITargetable target)
         {
             StopAllCoroutines();
+            Target = target;
             CreateCombinedDamage(damage);
-            InitProjectileOnLaunch(startPosition, parent);
-            SetupRigidBodyOnLaunch(velocity);
+            InitProjectileOnLaunch(trajectoryData.StartPosition, parent);
+            SetupRigidBodyOnLaunch();
+            Rigidbody.velocity = trajectoryData.Velocity;
             StartCoroutine(DeactivateInTime(this.Stats.ProjectileLifeTime.Value));
         }
 
@@ -78,11 +81,10 @@ namespace TheTD.Projectiles
             IsCollided = false;
         }
 
-        protected virtual void SetupRigidBodyOnLaunch(Vector3 velocity)
+        protected virtual void SetupRigidBodyOnLaunch()
         {
             Rigidbody.useGravity = true;
             Rigidbody.isKinematic = false;
-            Rigidbody.velocity = velocity;
         }
 
         protected IEnumerator DeactivateInTime(float time)

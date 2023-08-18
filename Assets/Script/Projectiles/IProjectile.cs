@@ -4,6 +4,6 @@ using UnityEngine;
 public interface IProjectile
 {
     bool IsActive { get; }
-    void Launch(Vector3 startPosition, Vector3 velocity, Transform parent, Damage damage);
+    void Launch(TrajectoryData trajectoryData, Transform parent, Damage damage, ITargetable target);
     void ReadyForPool();
 }

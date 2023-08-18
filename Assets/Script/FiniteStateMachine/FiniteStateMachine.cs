@@ -1,9 +1,8 @@
-using System;
 using System.Collections.Generic;
 using TheTD.StatSystem;
 using UnityEngine;
 
-namespace ScriptableFiniteStateMachine
+namespace TheTD.ScriptableFiniteStateMachine
 {
     [RequireComponent(typeof(PathControl))]
     public abstract class FiniteStateMachine : MonoBehaviour
@@ -38,7 +37,7 @@ namespace ScriptableFiniteStateMachine
 
         virtual protected void SetCurrentState(StateScriptableObject value)
         {
-            Debug.LogFormat(CHANGING_STATE_TO_FORMAT, value.name);
+            //Debug.LogFormat(CHANGING_STATE_TO_FORMAT, value.name);
             _currentState.Exit(this);
             onStateExit?.Invoke(this, _currentState);
             var newState = states.Find(o => o == value);

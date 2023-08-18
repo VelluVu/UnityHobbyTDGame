@@ -1,4 +1,4 @@
-namespace ScriptableFiniteStateMachine
+namespace TheTD.ScriptableFiniteStateMachine
 {
     [System.Serializable]
     public class TransitionSeriliazeObject

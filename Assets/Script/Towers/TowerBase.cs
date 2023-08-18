@@ -51,6 +51,8 @@ namespace TheTD.Towers
             StartCoroutine(TurretAI());
         }
 
+        virtual protected void Update() {}
+
         private void OnTargetDestroy(ITargetable destroyedTarget, Damage damage)
         {
             if (_oldTargets.Contains(destroyedTarget))
@@ -102,25 +104,15 @@ namespace TheTD.Towers
         virtual public void BuildTower(Transform parent)
         {
             Instantiate(TowerData.TowerPrefab, parent.position, transform.rotation, parent);
-            //AstarPath.active.Scan();
         }
 
         virtual public bool IsLockedOnTarget(Vector3 aimDirection)
         {
-            Vector3 turretForward = TurretRotator.transform.forward;
-            Vector3 aimDirectionFlat = aimDirection;
-            aimDirectionFlat.y = 0f;
-            turretForward.y = 0f;
-
-            var dot = Vector3.Dot(turretForward, aimDirectionFlat);
-            DrawDebugLineInLoop(ShootPoint.position, aimDirection + ShootPoint.position, Color.red);
-            float dotAbs = Mathf.Abs(dot);
-
-            if (dotAbs >= _minimumLockOnEnemyDotProductRatio)
-            {
-                return true;
-            }
-            return false;
+            Vector3 turretForward = TurretRotator.transform.forward;     
+            var dot = Vector3.Dot(turretForward, aimDirection);
+            //Debug.Log(dot);
+            DrawDebugLineInLoop(ShootPoint.position, aimDirection + ShootPoint.position, Color.green);
+            return dot >= _minimumLockOnEnemyDotProductRatio;
         }
 
         virtual protected void TurnTurretTowardsAimDirection(Vector3 aimDirection)

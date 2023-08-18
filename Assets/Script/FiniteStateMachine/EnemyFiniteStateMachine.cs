@@ -3,7 +3,7 @@ using TheTD.Enemies;
 using TheTD.StatSystem;
 using UnityEngine;
 
-namespace ScriptableFiniteStateMachine
+namespace TheTD.ScriptableFiniteStateMachine
 {
     public class EnemyFiniteStateMachine : FiniteStateMachine
     {

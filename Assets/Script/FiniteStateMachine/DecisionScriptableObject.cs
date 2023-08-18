@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace ScriptableFiniteStateMachine
+namespace TheTD.ScriptableFiniteStateMachine
 {
     public abstract class DecisionScriptableObject : ScriptableObject
     {

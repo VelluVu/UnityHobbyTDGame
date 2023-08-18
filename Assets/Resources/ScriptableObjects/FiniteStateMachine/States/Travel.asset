@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Travel
   m_EditorClassIdentifier: 
   actions:
-  - action: {fileID: 11400000, guid: eb3caf7c2912bad4fb29e65d2dc7987c, type: 2}
+  - action: {fileID: 11400000, guid: bf7721fea7414c24faa4aca6ce6c5caf, type: 2}
     order: 0
   transitions:
   - transition: {fileID: 11400000, guid: 727d8e90e1a33cf469d075dea2e18162, type: 2}

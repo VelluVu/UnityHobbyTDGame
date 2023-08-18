@@ -1,9 +1,9 @@
 using UnityEngine;
 
-namespace ScriptableFiniteStateMachine
+namespace TheTD.ScriptableFiniteStateMachine
 {
     public abstract class ActionScriptableObject : ScriptableObject
     {
-        public abstract void Run(FiniteStateMachine fsm);
+        public abstract void Act(FiniteStateMachine fsm);
     }
 }

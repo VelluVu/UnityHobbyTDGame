@@ -11,5 +11,6 @@ public interface ITargetable
     Vector3 Velocity { get; }
     Vector3 Position { get; }
     Vector3 BodyCenter { get; }
+    Transform transform { get; }
     event Action<ITargetable, Damage> OnEliminated;
 }

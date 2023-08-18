@@ -298,6 +298,12 @@ MonoBehaviour:
   _turretRotator: {fileID: 0}
   _shootPoint: {fileID: 0}
   _maxShootForce: 10
+  _forceRatio: 0.3
+  throwStrength: 0
+  _useMovementPrediction: 1
+  historicalTime: 1
+  historicalResolution: 10
+  movementPredictionMode: 0
   projectilePrefab: {fileID: 1915144652504460451, guid: df37511f474d68c49be27e80772f6ba5, type: 3}
 --- !u!1 &6369959010192936285
 GameObject:

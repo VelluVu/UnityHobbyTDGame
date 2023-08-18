@@ -1,11 +1,11 @@
 using UnityEngine;
 
-namespace ScriptableFiniteStateMachine
+namespace TheTD.ScriptableFiniteStateMachine
 {
     [CreateAssetMenu(fileName = "Transition", menuName = "ScriptableObjects/FiniteStateMachine/Transitions/TransitionBase")]
     public class TransitionBase : TransitionScriptableObject
     {
-        public override void Run(FiniteStateMachine fsm)
+        public override void Check(FiniteStateMachine fsm)
         {
             if (decision.Decide(fsm) && !(trueState is RemainInState))
                 fsm.ChangeState(trueState);

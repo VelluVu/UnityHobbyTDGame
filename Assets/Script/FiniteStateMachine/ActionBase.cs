@@ -1,12 +1,8 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-namespace ScriptableFiniteStateMachine
+namespace TheTD.ScriptableFiniteStateMachine
 {
     public class ActionBase : ActionScriptableObject
     {
-        public override void Run(FiniteStateMachine fsm)
+        public override void Act(FiniteStateMachine fsm)
         {
             
         }

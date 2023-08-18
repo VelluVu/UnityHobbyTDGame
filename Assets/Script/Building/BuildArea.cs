@@ -2,7 +2,6 @@ using Pathfinding;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using TheTD.Core;
 using TheTD.Spawning;
 using UnityEngine;
@@ -32,12 +31,6 @@ namespace TheTD.Building
         private GameObject _testObstacleGameObject;
         public GameObject TestObstacleGameObject { get => _testObstacleGameObject = _testObstacleGameObject != null ? _testObstacleGameObject : Instantiate(TestObstaclePrefab); }
 
-        //private NavMeshPath _testPath;
-        //public NavMeshPath TestPath { get => _testPath = _testPath != null ? _testPath : new NavMeshPath(); }
-
-        //private NavMeshObstacle _testObstacle;
-        //public NavMeshObstacle TestObstacle { get => _testObstacle = _testObstacle != null ? _testObstacle : TestObstaclePrefab.GetComponent<NavMeshObstacle>(); }
-
         public delegate void SelectBuildSpotDelegate(BuildSpot selectedSpot);
         public static event SelectBuildSpotDelegate OnSelectedBuildSpotChange;
 
@@ -52,9 +45,6 @@ namespace TheTD.Building
         private void Start()
         {
             AddListeners();
-            //navMeshQueryFilter = new NavMeshQueryFilter();
-            //navMeshQueryFilter.agentTypeID = NavMeshControl.Instance.NavMeshSurface.agentTypeID;
-            //navMeshQueryFilter.areaMask = NavMeshControl.Instance.NavMeshSurface.layerMask;
             CheckBlockedSpots();
         }
 
@@ -102,8 +92,7 @@ namespace TheTD.Building
             if (isClickOnTheGrid)
             {
                 var clickedBuildSpot = CustomGrid.FindBuildSpotInWorldPosition(clickPosition);
-                OnBuildAreaClicked?.Invoke(this);
-                //ValidateBuildSpot(clickedBuildSpot);             
+                OnBuildAreaClicked?.Invoke(this);          
                 selectedBuildSpot = clickedBuildSpot;
                 OnSelectedBuildSpotChange?.Invoke(selectedBuildSpot);           
             }
@@ -182,7 +171,7 @@ namespace TheTD.Building
         {
             var neighbours = buildSpot.NeighbourBuildSpots;
             var spawners = SpawnersControl.Instance.AllSpawners;
-            var graphUpdateAreaBounds = new Bounds(buildSpot.CenterPositionInWorld, Vector3.one * 3f);
+     
             TestObstacleGameObject.SetActive(true);
 
             foreach (var neighbour in neighbours.Values)
@@ -190,7 +179,7 @@ namespace TheTD.Building
                 if (neighbour.IsOccupied) continue;
 
                 foreach (var spawner in spawners)
-                    if (!CheckIfObstacleInBuildSpotWouldBlockPath(neighbour, spawner.transform.position, spawner.EndTransform.position, graphUpdateAreaBounds)) break;     
+                    if (!CheckIfObstacleInBuildSpotWouldBlockPath(neighbour, spawner.transform.position, spawner.EndTransform.position)) break;     
             }         
             TestObstacleGameObject.SetActive(false);
             AstarPath.active.Scan();       
@@ -211,7 +200,7 @@ namespace TheTD.Building
             return PathUtilities.IsPathPossible(startNode, destinationNode);
         }
 
-        private bool CheckIfObstacleInBuildSpotWouldBlockPath(BuildSpot buildSpot, Vector3 spawnPosition, Vector3 endPosition, Bounds graphUpdateAreaBounds)
+        private bool CheckIfObstacleInBuildSpotWouldBlockPath(BuildSpot buildSpot, Vector3 spawnPosition, Vector3 endPosition)
         {
             //TODO: Make more efficient, replace Scans!
             TestObstacleGameObject.transform.position = buildSpot.CenterPositionInWorld + Vector3.up * 0.5f;
@@ -220,14 +209,12 @@ namespace TheTD.Building
             var isBuildSpotWalkable = buildSpotNode.Walkable;
             
             buildSpotNode.Walkable = false;
-            //UpdateGraphWithBounds(graphUpdateAreaBounds);
             AstarPath.active.Scan();
 
             bool isAvailablePosition = IsPathPossible(spawnPosition, endPosition);
             buildSpot.IsInvalidSpot = !isAvailablePosition;
 
             buildSpotNode.Walkable = isBuildSpotWalkable;
-            //UpdateGraphWithBounds(graphUpdateAreaBounds);
             AstarPath.active.Scan();
 
             return isAvailablePosition;
@@ -243,15 +230,13 @@ namespace TheTD.Building
         private void ValidateBuildSpot(BuildSpot buildSpot)
         {
             var spawners = SpawnersControl.Instance.AllSpawners;
-            var graphUpdateAreaBounds = new Bounds(buildSpot.CenterPositionInWorld, Vector3.one * 30f);
             TestObstacleGameObject.SetActive(true);
 
             foreach (var spawner in spawners)
-                if (!CheckIfObstacleInBuildSpotWouldBlockPath(buildSpot, spawner.transform.position, spawner.EndTransform.position, graphUpdateAreaBounds)) break; 
+                if (!CheckIfObstacleInBuildSpotWouldBlockPath(buildSpot, spawner.transform.position, spawner.EndTransform.position)) break; 
 
             TestObstacleGameObject.SetActive(false);
             AstarPath.active.Scan();
-            //UpdateGraphWithBounds(graphUpdateAreaBounds);
         }
 
         #endregion

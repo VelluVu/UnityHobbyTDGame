@@ -1,5 +1,4 @@
-using Pathfinding;
-using ScriptableFiniteStateMachine;
+using TheTD.ScriptableFiniteStateMachine;
 using System;
 using System.Collections;
 using System.Collections.Generic;

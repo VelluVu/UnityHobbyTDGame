@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace ScriptableFiniteStateMachine
+namespace TheTD.ScriptableFiniteStateMachine
 {
     public abstract class TransitionScriptableObject : ScriptableObject
     {
@@ -8,6 +8,6 @@ namespace ScriptableFiniteStateMachine
         public StateScriptableObject trueState;
         public StateScriptableObject falseState;
 
-        public abstract void Run(FiniteStateMachine fsm);
+        public abstract void Check(FiniteStateMachine fsm);
     }
 }

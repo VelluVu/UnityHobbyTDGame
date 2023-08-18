@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace ScriptableFiniteStateMachine
+namespace TheTD.ScriptableFiniteStateMachine
 {
     [CreateAssetMenu(fileName = "NoPath", menuName = "ScriptableObjects/FiniteStateMachine/Decisions/NoPath")]
     public class NoPathDecision : DecisionScriptableObject

@@ -1,7 +1,6 @@
 using System.Linq;
-using UnityEngine;
 
-namespace ScriptableFiniteStateMachine
+namespace TheTD.ScriptableFiniteStateMachine
 {
     public class StateBase : StateScriptableObject
     {
@@ -10,13 +9,13 @@ namespace ScriptableFiniteStateMachine
 
         public override void Enter(FiniteStateMachine fsm)
         {
-            Debug.LogFormat(ENTER_STATE_FORMAT, name);
+            //Debug.LogFormat(ENTER_STATE_FORMAT, name);
             actions = actions.OrderBy(o => o.order).ToList();
         }
 
         public override void Exit(FiniteStateMachine fsm)
         {
-            Debug.LogFormat(LEAVE_STATE_FORMAT, name);
+            //Debug.LogFormat(LEAVE_STATE_FORMAT, name);
         }
 
         public override void Run(FiniteStateMachine fsm)
@@ -25,12 +24,12 @@ namespace ScriptableFiniteStateMachine
 
             for (int i = 0; i < actions.Count; i++)
             {
-                actions[i].action.Run(fsm);
+                actions[i].action.Act(fsm);
             }
 
             for (int i = 0; i < transitions.Count; i++)
             {
-                transitions[i].transition.Run(fsm);
+                transitions[i].transition.Check(fsm);
             }
         }
     }

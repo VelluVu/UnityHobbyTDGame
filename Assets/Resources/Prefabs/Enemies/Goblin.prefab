@@ -127,8 +127,8 @@ MonoBehaviour:
   detailedGizmos: 0
   startEndModifier:
     addPoints: 0
-    exactStartPoint: 3
-    exactEndPoint: 3
+    exactStartPoint: 1
+    exactEndPoint: 1
     useRaycasting: 0
     mask:
       serializedVersion: 2
@@ -150,6 +150,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa406ac7a9123484ba06764ac18bcb90, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  currentNodeIndex: 0
 --- !u!1 &7980420653212588700
 GameObject:
   m_ObjectHideFlags: 0

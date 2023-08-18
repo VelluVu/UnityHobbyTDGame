@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace ScriptableFiniteStateMachine
+namespace TheTD.ScriptableFiniteStateMachine
 {
     [CreateAssetMenu(fileName = "ReadyToTravel", menuName = "ScriptableObjects/FiniteStateMachine/Decisions/ReadyToTravel")]
     public class ReadyToTravelDecision : DecisionScriptableObject
