@@ -7,7 +7,7 @@ namespace TheTD.ScriptableFiniteStateMachine
     {
         public override bool Decide(FiniteStateMachine fsm)
         {
-            return !fsm.PathControl.HasPath;
+            return !fsm.PathControl.HasPath || fsm.IsDead;
         }
     }
 }

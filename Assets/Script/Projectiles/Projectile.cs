@@ -11,7 +11,7 @@ namespace TheTD.Projectiles
         protected const string PATH_TO_PROJECTILE_STATS = "ScriptableObjects/Projectiles/Stats/";
 
         public LayerMask hitLayerMask;
-        protected Damage _combinedDamage;
+        protected Damage _totalDamage;
         protected List<IOvertimeEffect> _overtimeEffects = new List<IOvertimeEffect>();
         protected List<IModifier> _listOfModifiers = new List<IModifier>();
 
@@ -61,7 +61,7 @@ namespace TheTD.Projectiles
                 overtimeEffects.AddRange(_overtimeEffects);
             }
 
-            _combinedDamage = new Damage(
+            _totalDamage = new Damage(
                 Stats.Damage.Value + damage.DamageStat.Value,
                 Stats.CriticalChange.Value + damage.CriticalChance.Value,
                 Stats.CriticalDamageMultiplier.Value + damage.CriticalDamageMultiplier.Value,
@@ -131,7 +131,13 @@ namespace TheTD.Projectiles
 
         virtual protected void HitEnemy(Collision collision)
         {
-            collision.gameObject.GetComponentInParent<IDamageable>().TakeDamage(_combinedDamage);
+            var hitVector = collision.transform.position - transform.position;
+            hitVector.y = 0;
+            var hitDirection = hitVector.normalized;
+            var impactVector = hitDirection * Stats.Impact.Value;
+            var targetable = collision.gameObject.GetComponentInParent<ITargetable>();
+            targetable.Rigidbody.AddForce(impactVector, ForceMode.Impulse);
+            collision.gameObject.GetComponentInParent<IDamageable>().TakeDamage(_totalDamage);
         }
 
         virtual protected void SetIsCollided(bool value)

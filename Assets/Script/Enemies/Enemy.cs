@@ -46,8 +46,8 @@ namespace TheTD.Enemies
         private Collider _collider;
         virtual internal Collider Collider { get => _collider = _collider != null ? _collider : GetComponentInChildren<Collider>(); }
 
-        private Rigidbody _rigidBody;
-        public Rigidbody Rigidbody { get => _rigidBody = _rigidBody != null ? _rigidBody : GetComponent<Rigidbody>(); }
+        private Rigidbody _rigidbody;
+        public Rigidbody Rigidbody { get => GetRigidbody(); }
 
         protected EnemyBody _body;
         virtual public EnemyBody Body { get => _body = _body != null ? _body : GetComponentInChildren<EnemyBody>(); }
@@ -239,6 +239,15 @@ namespace TheTD.Enemies
         {
             var loadedBaseStats = Resources.Load<EnemyBaseStats>(FULL_PATH_TO_ENEMY_STATS);
             return loadedBaseStats;
+        }
+
+        virtual protected Rigidbody GetRigidbody()
+        {
+            if(_rigidbody != null) {
+                return _rigidbody;
+            }
+            _rigidbody = GetComponent<Rigidbody>();
+            return _rigidbody;
         }
 
         public abstract List<IModifier> GetDefensiveModifiers();

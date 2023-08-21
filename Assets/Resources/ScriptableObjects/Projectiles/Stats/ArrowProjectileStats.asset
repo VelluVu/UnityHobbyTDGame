@@ -15,6 +15,9 @@ MonoBehaviour:
   _damage:
     BaseValue: 1
     _statFlags: 4
+  _impact:
+    BaseValue: 100
+    _statFlags: 65536
   _criticalChange:
     BaseValue: 0
     _statFlags: 256

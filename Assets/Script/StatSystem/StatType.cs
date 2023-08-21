@@ -20,4 +20,5 @@ public enum StatFlags
     Acceleration = 8192,
     Gold = 16384,
     Experience = 32768,
+    Impact = 65536
 }

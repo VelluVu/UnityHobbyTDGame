@@ -12,7 +12,7 @@ namespace TheTD.Towers
 
         [SerializeField] protected float _maxShootForce = 10f;
         [SerializeField, Range(0f, 1f)] protected float _forceRatio = 0.0f;
-        public float throwStrength;
+        public float launchStrength;
 
         [SerializeField] private bool _useMovementPrediction;
         [Range(0.01f, 5f)] public float historicalTime = 1f;
@@ -60,7 +60,7 @@ namespace TheTD.Towers
             if (_lastHistoryRecordedTime + _historicalPositionInterval < Time.time)
             {
                 _lastHistoryRecordedTime = Time.time;
-                if (_historicalPositions.Any())
+                if (_historicalPositions.Any() && _currentTarget != null)
                 {
                     _historicalPositions.Dequeue();
                     _historicalPositions.Enqueue(CurrentTarget.Position);
@@ -86,13 +86,13 @@ namespace TheTD.Towers
 
         private TrajectoryData GetPredictedPositionTrajectoryData(TrajectoryData directTrajectoryData)
         {
-            Vector3 throwVelocity = directTrajectoryData.Velocity;
-            throwVelocity.y = 0;
-            float time = directTrajectoryData.DeltaXZ / throwVelocity.magnitude;
+            Vector3 projectileVelocity = directTrajectoryData.Velocity;
+            projectileVelocity.y = 0;
+            float time = directTrajectoryData.DeltaXZ / projectileVelocity.magnitude;
             Vector3 enemyMovement;
 
             if (movementPredictionMode == PredictionMode.CurrentVelocity)
-            {
+            {              
                 enemyMovement = CurrentTarget.Velocity * time;
             }
             else
@@ -142,8 +142,8 @@ namespace TheTD.Towers
             // v^2 / g = y + sqrt(y^2 + x^2)
             // meaning.... v = sqrt(g * (y+ sqrt(y^2 + x^2)))
             float gravity = Mathf.Abs(Physics.gravity.y);
-            throwStrength = Mathf.Clamp(Mathf.Sqrt(gravity * (deltaY + Mathf.Sqrt(Mathf.Pow(deltaY, 2) + Mathf.Pow(deltaXZ, 2)))), 0.01f, _maxShootForce);
-            throwStrength = Mathf.Lerp(throwStrength, _maxShootForce, _forceRatio);
+            launchStrength = Mathf.Clamp(Mathf.Sqrt(gravity * (deltaY + Mathf.Sqrt(Mathf.Pow(deltaY, 2) + Mathf.Pow(deltaXZ, 2)))), 0.01f, _maxShootForce);
+            launchStrength = Mathf.Lerp(launchStrength, _maxShootForce, _forceRatio);
             float angle;
 
             if (_forceRatio == 0)
@@ -156,17 +156,17 @@ namespace TheTD.Towers
                 // when we know the initial velocity, we have to calculate it with this formula
                 // Angle to throw = arctan((v^2 +- sqrt(v^4 - g * (g * x^2 + 2 * y * v^2)) / g*x)
                 angle = Mathf.Atan(
-                    (Mathf.Pow(throwStrength, 2) - Mathf.Sqrt(
-                        Mathf.Pow(throwStrength, 4) - gravity
+                    (Mathf.Pow(launchStrength, 2) - Mathf.Sqrt(
+                        Mathf.Pow(launchStrength, 4) - gravity
                         * (gravity * Mathf.Pow(deltaXZ, 2)
-                        + 2 * deltaY * Mathf.Pow(throwStrength, 2)))
+                        + 2 * deltaY * Mathf.Pow(launchStrength, 2)))
                     ) / (gravity * deltaXZ)
                 );
             }
 
             Vector3 initialVelocity =
-                Mathf.Cos(angle) * throwStrength * displacement.normalized
-                + Mathf.Sin(angle) * throwStrength * Vector3.up;
+                Mathf.Cos(angle) * launchStrength * displacement.normalized
+                + Mathf.Sin(angle) * launchStrength * Vector3.up;
 
             float time = deltaXZ / initialVelocity.magnitude;
 

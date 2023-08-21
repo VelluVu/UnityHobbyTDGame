@@ -10,6 +10,9 @@ namespace TheTD.Projectiles
         [SerializeField] private Stat _damage;
         public Stat Damage { get => _damage; }
 
+        [SerializeField] private Stat _impact;
+        public Stat Impact { get => _impact; }
+
         [SerializeField] private Stat _criticalChange;
         public Stat CriticalChange { get => _criticalChange; }
 
@@ -29,6 +32,7 @@ namespace TheTD.Projectiles
         {
             this.BaseStats = baseStats;
             _damage = new Stat(BaseStats.Damage);
+            _impact = new Stat(BaseStats.Impact);
             _criticalChange = new Stat(BaseStats.CriticalChange);
             _criticalDamageMultiplier = new Stat(BaseStats.CriticalDamageMultiplier);
             _projectileLifeTime = new Stat(BaseStats.ProjectileLifeTime);

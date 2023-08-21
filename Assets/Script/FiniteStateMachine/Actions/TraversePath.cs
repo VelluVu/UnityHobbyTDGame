@@ -46,7 +46,10 @@ namespace TheTD.ScriptableFiniteStateMachine
 
         public void MoveForward(FiniteStateMachine fsm, Rigidbody rigidBody)
         {
-            rigidBody.MovePosition(rigidBody.position + rigidBody.transform.forward * fsm.MovementStats.MoveSpeed.Value * Time.deltaTime);
+            //rigidBody.MovePosition(rigidBody.position + rigidBody.transform.forward * fsm.MovementStats.MoveSpeed.Value * Time.deltaTime);
+            rigidBody.AddForce(rigidBody.transform.forward * fsm.MovementStats.MoveSpeed.Value, ForceMode.VelocityChange);
+            //var velocity = rigidBody.transform.forward * fsm.MovementStats.MoveSpeed.Value;
+            //rigidBody.velocity = velocity;
         }
 
         public void RotateTowardsPoint(Vector3 point, Rigidbody rigidbody, float turnSpeed)

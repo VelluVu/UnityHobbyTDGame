@@ -7,6 +7,9 @@ public class ProjectileBaseStats : ScriptableObject
     [SerializeField] private Stat _damage;
     public Stat Damage { get => _damage; }
 
+    [SerializeField] private Stat _impact;
+    public Stat Impact { get => _impact; }
+
     [SerializeField] private Stat _criticalChange;
     public Stat CriticalChange { get => _criticalChange; }
 
