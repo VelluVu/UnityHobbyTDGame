@@ -7,7 +7,7 @@ namespace TheTD.ScriptableFiniteStateMachine
     {
         public override bool Decide(FiniteStateMachine fsm)
         {
-            var isReadyToTravelAgain = (fsm.PathControl.HasPath && !fsm.HasReachedEnd);
+            var isReadyToTravelAgain = fsm.PathControl.HasPath && !fsm.HasReachedEnd;
             return isReadyToTravelAgain;
         }
     }

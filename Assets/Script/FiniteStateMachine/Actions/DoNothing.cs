@@ -7,6 +7,7 @@ namespace TheTD.ScriptableFiniteStateMachine
     {  
         public override void Act(FiniteStateMachine fsm)
         {
+            
         }
     }
 }

@@ -18,6 +18,7 @@ namespace TheTD.Enemies
         private const string END_POINT_TAG = "EndPoint";
         private float dissolveDelay = 1f;
 
+        [SerializeField] protected LayerMask obstacleLayer;
         [SerializeField] protected EnemyType type = EnemyType.Goblin;
         protected List<IOvertimeEffect> OnGoingOvertimeEffects = new List<IOvertimeEffect>();
         protected List<Coroutine> damageTakeCoroutines = new List<Coroutine>();
@@ -104,12 +105,26 @@ namespace TheTD.Enemies
             OnBodyCollision(other);
         }
 
-        virtual protected void OnBodyCollision(Collider other)
+        virtual protected void OnCollisionEnter(Collision other) 
         {
-            ReachEnd(other);
+            CheckIfCollidesWithBlockingObject(other);
         }
 
-        private void ReachEnd(Collider other)
+        virtual protected void OnBodyCollision(Collider other)
+        {
+            CheckIfReachEnd(other);    
+        }
+
+        private void CheckIfCollidesWithBlockingObject(Collision other)
+        {
+            if(obstacleLayer.Contains(other.gameObject.layer))
+            {
+                Vector3 newPathStart = new Vector3(other.contacts[0].normal.x, 0f, other.contacts[0].normal.z) * 0.5f + transform.position;
+                FSM.PathControl.FindPath(newPathStart, FSM.PathControl.Destination);
+            }
+        }
+
+        private void CheckIfReachEnd(Collider other)
         {
             if (other.CompareTag(END_POINT_TAG))
             {

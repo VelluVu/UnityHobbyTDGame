@@ -11,6 +11,7 @@ namespace TheTD.ScriptableFiniteStateMachine
         private const string CHANGING_STATE_TO_FORMAT = "Changing state to {0}";
         [SerializeField] protected List<StateScriptableObject> states = new List<StateScriptableObject>();
 
+        public bool IsTurning { get; internal set; }
         public bool IsDead { get; protected set; }
         public bool HasReachedEnd { get; protected set; }
 

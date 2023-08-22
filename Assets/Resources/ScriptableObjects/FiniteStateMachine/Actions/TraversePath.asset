@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: TraversePath
   m_EditorClassIdentifier: 
   minDistanceToNode: 0.2
-  minValueForRightDirection: 0.95
+  minValueForCorrectDirection: 0.991

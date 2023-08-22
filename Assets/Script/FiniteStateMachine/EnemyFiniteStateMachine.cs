@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using TheTD.DamageSystem;
 using TheTD.Enemies;
 using TheTD.StatSystem;
@@ -13,7 +15,7 @@ namespace TheTD.ScriptableFiniteStateMachine
         protected override void AddListeners()
         {
             Enemy.OnReachEnd += OnEnemyReachEnd;
-            Enemy.OnDeath += OnEnemyDeath;
+            Enemy.OnDeath += OnEnemyDeath;     
         }
 
         protected override void RemoveListeners()

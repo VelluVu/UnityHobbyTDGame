@@ -125,6 +125,7 @@ GameObject:
   - component: {fileID: 3222019546124959391}
   - component: {fileID: 8467850276683073114}
   - component: {fileID: 6504299904929846394}
+  - component: {fileID: -284104013073129976}
   m_Layer: 9
   m_Name: Orc
   m_TagString: Untagged
@@ -160,6 +161,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b588b2f44bf45ba4ea0ec14c7cf9f14a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 10240
   type: 1
   _baseStats: {fileID: 0}
   _stats:
@@ -261,4 +265,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa406ac7a9123484ba06764ac18bcb90, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  IsNewPath: 1
   currentNodeIndex: 0
+  currentPath: []
+  currentNode: {x: 0, y: 0, z: 0}
+  nextNode: {x: 0, y: 0, z: 0}
+--- !u!114 &-284104013073129976
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6814807215059265684}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b090bec917bbe4c3bbc612ef13f7c4a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 1
+  useRaycasting: 1
+  mask:
+    serializedVersion: 2
+    m_Bits: 10240
+  thickRaycast: 1
+  thickRaycastRadius: 0.2
+  use2DPhysics: 0
+  raycastOffset: {x: 0, y: 0, z: 0}
+  useGraphRaycasting: 0
+  quality: 1

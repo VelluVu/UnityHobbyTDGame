@@ -2,21 +2,20 @@ using UnityEngine;
 using Pathfinding;
 using UnityEngine.Events;
 using TheTD.Building;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(Seeker))]
 public class PathControl : MonoBehaviour
 {
     private const string END_POINT_TAG = "EndPoint";
-
+    public bool IsNewPath = true;
     [SerializeField] public int currentNodeIndex = 0;
+    public List<Vector3> currentPath;
+    [SerializeField] public Vector3 currentNode;
+    [SerializeField] public Vector3 nextNode;
 
-    public Path currentPath;
-    [SerializeField] public GraphNode currentNode;
-    [SerializeField] public GraphNode nextNode;
-
-    public bool HasPath { get => currentPath != null; }
-
-    public Vector3 NextNodePosition { get => (Vector3)nextNode.position; }
+    //public Vector3 NextNodePosition { get => (Vector3)nextNode.position; }
+    public bool HasPath { get; protected set; }
 
     private Vector3 destinationYOffset = Vector3.zero;
     public Vector3 DestinationYOffset { set => destinationYOffset = value; }
@@ -24,7 +23,7 @@ public class PathControl : MonoBehaviour
     private Vector3 _destination;
     public Vector3 Destination { get => _destination = _destination != null ? _destination : GameObject.FindGameObjectWithTag(END_POINT_TAG).transform.position; set => _destination = value; }
 
-    public UnityAction<Path> OnNewPath;
+    public UnityAction<List<Vector3>> OnNewPath;
     public UnityAction OnPathFail;
 
     private Seeker _seeker;
@@ -65,6 +64,7 @@ public class PathControl : MonoBehaviour
 
     public void FindPath(Vector3 start, Vector3 destination) 
     {
+        HasPath = false;
         Seeker.StartPath(start, destination, OnPathComplete);
     }
 
@@ -73,12 +73,14 @@ public class PathControl : MonoBehaviour
         if (newPath.error) 
         {
             Debug.Log(newPath.errorLog);
-            currentPath = null;
+            HasPath = false;
             OnPathFail?.Invoke();
             return;
         } 
-       
-        currentPath = newPath;
+
+        currentPath = newPath.vectorPath;
+        IsNewPath = true;
+        HasPath = true;
         OnNewPath?.Invoke(currentPath);
     }
 }
