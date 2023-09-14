@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace TheTD.UI
 {
-    public class BuildingPanel : MonoBehaviour
+    public class BuildingPanel : MonoBehaviour, IEventListener
     {
         private const string PATH_TO_BUILDING_OPTION = "Prefabs/UI/BuildingOption";
         private const string SELECTED_TOWER_IS_NULL = "Selected tower is null, please select tower to build from building panel";
@@ -14,11 +14,11 @@ namespace TheTD.UI
         public Button buildButton;
         public Button sellButton;
 
-        private ScrollRect buildingScrollRect;
-        public ScrollRect BuildingScrollRect { get => buildingScrollRect = buildingScrollRect != null ? buildingScrollRect : GetComponentInChildren<ScrollRect>(); }
+        private ScrollRect _buildingScrollRect;
+        public ScrollRect BuildingScrollRect { get => _buildingScrollRect = _buildingScrollRect != null ? _buildingScrollRect : GetComponentInChildren<ScrollRect>(); }
 
-        private BuildingOption buildingOption;
-        public BuildingOption BuildingOption { get => buildingOption = buildingOption != null ? buildingOption : Resources.Load<BuildingOption>(PATH_TO_BUILDING_OPTION); }
+        private BuildingOption _buildingOption = null;
+        public BuildingOption BuildingOption { get => _buildingOption = _buildingOption != null ? _buildingOption : Resources.Load<BuildingOption>(PATH_TO_BUILDING_OPTION); }
 
         public List<BuildingOption> buildingOptions = new List<BuildingOption>();
 
@@ -53,6 +53,12 @@ namespace TheTD.UI
             OnBuildClick?.Invoke(selectedTower);
         }
 
+        public void RemoveListeners()
+        {
+            GameProgress.OnTowerProgressChange -= OnTowerProgressChange;
+            if(buildButton != null) buildButton.onClick.RemoveAllListeners();
+        }
+
         private void OnTowerProgressChange()
         {
             var unlockedTowers = GameProgress.Instance.GetUnlockedTowers();
@@ -77,18 +83,23 @@ namespace TheTD.UI
         {
             unlockedTowers.ForEach(o =>
             {
-                var buildingOption = Instantiate(BuildingOption, BuildingScrollRect.content).GetComponent<BuildingOption>();
-                buildingOption.InitBuildingOption(o);
+                var _buildingOption = Instantiate(BuildingOption, BuildingScrollRect.content).GetComponent<BuildingOption>();
+                _buildingOption.InitBuildingOption(o);
                 BuildingOption.OnSelectTowerOption += OnSelectTowerOption;
-                buildingOptions.Add(buildingOption);
+                buildingOptions.Add(_buildingOption);
             });
         }
 
-        private void OnSelectTowerOption(BuildingOption buildingOption)
+        private void OnSelectTowerOption(BuildingOption _buildingOption)
         {
-            selectedTower = buildingOption.TowerLoadData;
+            selectedTower = _buildingOption.TowerLoadData;
             buildingOptions.ForEach(o => o.IsSelected = false);
-            buildingOption.IsSelected = true;
+            _buildingOption.IsSelected = true;
+        }
+
+        private void OnDestroy()
+        {
+            RemoveListeners();
         }
     }
 }

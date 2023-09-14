@@ -1,10 +1,9 @@
-using Pathfinding;
 using TheTD.Core;
 using UnityEngine;
 
 namespace TheTD.Building
 {
-    public class Construction : MonoBehaviour
+    public class Construction : MonoBehaviour, IEventListener
     {
         private const string CONSTRUCTION_GAME_OBJECT_NAME = "Construction";
         //private const string NAV_MESH_OBSTACLE_PREFAB_PATH = "Prefabs/NavMeshObstacle";
@@ -18,20 +17,9 @@ namespace TheTD.Building
         private BuildSpot buildSpot;
         public BuildSpot BuildSpot { get => buildSpot; private set => buildSpot = value; }
 
-        //private NavMeshObstacle navMeshObstacle;
-        //public NavMeshObstacle NavMeshObstacle { get => navMeshObstacle; private set => navMeshObstacle = value; }
-
-        //private GameObject navMeshObstaclePrefab;
-        //public GameObject NavMeshObstaclePrefab { get => navMeshObstaclePrefab = navMeshObstaclePrefab != null ? navMeshObstaclePrefab : Resources.Load<GameObject>(NAV_MESH_OBSTACLE_PREFAB_PATH); }
-
         public void Start()
         {
-            GameControl.Instance.OnStartWave += OnStartWave;
-        }
-
-        private void OnStartWave(int wave)
-        {
-            CheckBuildingStatus(wave);
+            AddListeners();   
         }
 
         public void InitBuilding(BuildSpot buildSpot, ITowerLoadData towerData)
@@ -42,9 +30,27 @@ namespace TheTD.Building
             gameObject.layer = LayerMask.NameToLayer("Building");
             BuildSpot = buildSpot;
             transform.position = BuildSpot.CenterPositionInWorld;          
-            //NavMeshObstacle = Instantiate(NavMeshObstaclePrefab, BuildSpot.CenterPositionInWorld + Vector3.up * 0.5f, Quaternion.identity).GetComponent<NavMeshObstacle>();
-            //NavMeshObstacle.transform.SetParent(transform);
             Tower = towerData.Tower;           
+        }
+
+        public void CheckBuildingStatus(int wave)
+        {
+            IsNew = buildOnWave >= wave;
+        }
+
+        public void AddListeners()
+        {
+            GameControl.Instance.OnStartWave += OnStartWave;
+        }
+
+        public void RemoveListeners()
+        {
+            GameControl.Instance.OnStartWave -= OnStartWave;
+        }
+
+        private void OnStartWave(int wave)
+        {
+            CheckBuildingStatus(wave);
         }
 
         private void SetTower(ITower value)
@@ -54,9 +60,9 @@ namespace TheTD.Building
             Tower.BuildTower(transform);
         }
 
-        public void CheckBuildingStatus(int wave)
+        private void OnDestroy()
         {
-            IsNew = buildOnWave >= wave;
+            RemoveListeners();
         }
 
         private void OnDrawGizmos()

@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace TheTD.Spawning
 {
-    public class Spawner : MonoBehaviour
+    public class Spawner : MonoBehaviour, IEventListener
     {
         private const string ENEMY_PREFAB_PATH = "Prefabs/Enemies/";
         private const string END_POINT_TAG = "EndPoint";
@@ -55,10 +55,16 @@ namespace TheTD.Spawning
             enemies.Clear();
         }
 
-        virtual protected void AddListeners()
+        virtual public void AddListeners()
         {
             Enemy.OnReachEnd += OnEnemyReachEnd;
             Enemy.OnDeath += OnEnemyDie;
+        }
+
+        virtual public void RemoveListeners()
+        {
+            Enemy.OnReachEnd -= OnEnemyReachEnd;
+            Enemy.OnDeath -= OnEnemyDie;
         }
 
         virtual protected void OnEnemyDie(Enemy enemy, Damage damage)
@@ -148,6 +154,11 @@ namespace TheTD.Spawning
             }
 
             yield return null;
+        }
+
+        virtual protected void OnDestroy()
+        {
+            RemoveListeners();
         }
     }
 }

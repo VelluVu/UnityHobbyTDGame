@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace TheTD.UI
 {
-    public class PlayerGold : MonoBehaviour
+    public class PlayerGold : MonoBehaviour, IEventListener
     {
         private string goldFormat = "Gold: {0}";
         private TextMeshProUGUI _textMesh;
@@ -12,9 +12,14 @@ namespace TheTD.UI
 
         private void Start()
         {
+            AddListeners();
+        }
+
+        public void AddListeners()
+        {
             Player.OnSpendGold += OnPlayerGoldChange;
             Player.OnGainGold += OnPlayerGoldChange;
-            Player.OnInitialized += OnPlayerGoldChange;         
+            Player.OnInitialized += OnPlayerGoldChange;
         }
 
         private void OnPlayerGoldChange(Player player)
@@ -30,6 +35,18 @@ namespace TheTD.UI
         private void SetGoldText(int value)
         {
             TextMesh.SetText(FormatGoldText(value));
+        }
+
+        private void OnDestroy()
+        {
+            RemoveListeners();
+        }
+
+        public void RemoveListeners()
+        {
+            Player.OnSpendGold -= OnPlayerGoldChange;
+            Player.OnGainGold -= OnPlayerGoldChange;
+            Player.OnInitialized -= OnPlayerGoldChange;
         }
     }
 }

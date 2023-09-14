@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 6840599840169039960}
   - component: {fileID: 6732951312848800476}
   m_Layer: 11
-  m_Name: Collider
+  m_Name: BlockTower_Collider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -57,7 +57,7 @@ GameObject:
   - component: {fileID: 4976400888317487661}
   - component: {fileID: 7409489541060969242}
   m_Layer: 11
-  m_Name: BaseMesh
+  m_Name: BlockTower_BaseMesh
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

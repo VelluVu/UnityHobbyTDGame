@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using Pathfinding;
 using UnityEngine;
 
 namespace TheTD.Building
@@ -16,6 +16,10 @@ namespace TheTD.Building
         public Vector3 TopRightCornerPositionInWorld { get => new Vector3(BottomLeftPositionInWorld.x + Size, BottomLeftPositionInWorld.y, BottomLeftPositionInWorld.z + Size); }
         public Vector3 TopLeftCornerPositionInWorld { get => new Vector3(BottomLeftPositionInWorld.x, BottomLeftPositionInWorld.y, BottomLeftPositionInWorld.z + Size); }
 
+        private GraphNode _node;
+        public GraphNode Node { get => _node = _node != null ? _node : AstarPath.active.GetNearest(CenterPositionInWorld).node; }
+        
+
         [SerializeField]private Bounds _bounds;
         public Bounds Bounds { get => _bounds = (_bounds != null || _bounds.size != Vector3.zero) ? _bounds : new Bounds(CenterPositionInWorld + Vector3.up * 0.5f, new Vector3(Size, Size, Size)); }
 
@@ -27,27 +31,27 @@ namespace TheTD.Building
         private Construction _construction;
         public Construction Construction { get => _construction; set => _construction = value; }
 
-        [SerializeField] private bool _isOccupied;
-        public bool IsOccupied { get => _isOccupied; set => _isOccupied = value; }
+        [SerializeField] private bool _hasConstruction;
+        public bool HasConstruction { get => _hasConstruction; set => _hasConstruction = value; }
 
-        [SerializeField] private bool _isInvalidSpot;
-        public bool IsInvalidSpot { get => _isInvalidSpot; set => _isInvalidSpot = value; }
+        [SerializeField] private bool _isInvalidConstructionSpot;
+        public bool IsInvalidConstructionSpot { get => _isInvalidConstructionSpot; set => _isInvalidConstructionSpot = value; }
 
         [SerializeField] private float size;
         public float Size { get => size; private set => size = value; }
 
-        [SerializeField] private Vector3 bottomLeftLocalPosition;
-        public Vector3 BottomLeftLocalPosition { get => bottomLeftLocalPosition; private set => bottomLeftLocalPosition = value; }
+        [SerializeField] private Vector3 _bottomLeftLocalPosition;
+        public Vector3 BottomLeftLocalPosition { get => _bottomLeftLocalPosition; private set => _bottomLeftLocalPosition = value; }
 
-        [SerializeField] private Vector3 bottomLeftLocalPositionInWorld;
-        public Vector3 BottomLeftPositionInWorld { get => bottomLeftLocalPositionInWorld; private set => bottomLeftLocalPositionInWorld = value; }
+        [SerializeField] private Vector3 _bottomLeftPositionInWorld;
+        public Vector3 BottomLeftPositionInWorld { get => _bottomLeftPositionInWorld; private set => _bottomLeftPositionInWorld = value; }
 
-        public BuildSpot(Vector2Int gridPosition, Vector3 localPosition, Vector3 worldPosition, bool isOccupied, float size)
+        public BuildSpot(Vector2Int gridPosition, Vector3 localPosition, Vector3 worldPosition, bool isInvalidConstructionSpot, float size)
         {
             GridPosition = gridPosition;
             BottomLeftLocalPosition = localPosition;
             BottomLeftPositionInWorld = worldPosition;
-            IsOccupied = isOccupied;
+            IsInvalidConstructionSpot = isInvalidConstructionSpot;
             Size = size;              
             _bounds = new Bounds(CenterPositionInWorld + Vector3.up * 0.5f, new Vector3(Size * 0.99f, Size, Size * 0.99f));
         }
@@ -64,18 +68,25 @@ namespace TheTD.Building
 
         public void SetNeighbourBuildSpots(Dictionary<Vector2Int, BuildSpot> neighbourSpots)
         {
-            if (NeighbourBuildSpots != null) return;
             NeighbourBuildSpots = neighbourSpots;
         }
 
         public List<BuildSpot> GetNeighboursWithConstructions()
         {
-            return NeighbourBuildSpots.Values.ToList().FindAll(neighbour => neighbour.IsOccupied);
+            return NeighbourBuildSpots.Values.ToList().FindAll(neighbour => neighbour.HasConstruction);
         }
 
         public List<BuildSpot> GetNeighboursMarkedInvalidWithNoConstruction()
         {
-            return NeighbourBuildSpots.Values.ToList().FindAll(neighbour => neighbour.IsInvalidSpot && !neighbour.IsOccupied);
+            return NeighbourBuildSpots.Values.ToList().FindAll(neighbour => neighbour.IsInvalidConstructionSpot && !neighbour.HasConstruction);
+        }
+
+        public void DebugLogNeighbours()
+        {
+            foreach(var neighbour in NeighbourBuildSpots.Values)
+            {
+                Debug.Log("Neighbour in grid position: " + neighbour.GridPosition + " center world: " + neighbour.CenterPositionInWorld);
+            }
         }
 
         private bool GetHasOccupiedNeighbours()
@@ -87,7 +98,7 @@ namespace TheTD.Building
 
             foreach (var neighbour in NeighbourBuildSpots.Values)
             {
-                if (neighbour.IsOccupied || neighbour.IsInvalidSpot) return true;
+                if (neighbour.HasConstruction || neighbour.IsInvalidConstructionSpot) return true;
             }
 
             return false;

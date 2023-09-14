@@ -5,7 +5,7 @@ using UnityEngine;
 namespace TheTD.Players
 {
     [System.Serializable]
-    public class Life
+    public class Life : IEventListener
     {
         public int lastValueChange = 0;
 
@@ -20,9 +20,14 @@ namespace TheTD.Players
         internal event LifeDelegate OnHeal;
         internal event LifeDelegate OnMaxLife;
 
-        internal void AddListeners()
+        public void AddListeners()
         {
             SpawnersControl.Instance.OnEnemyReachEnd += OnEnemyReachedEnd;
+        }
+
+        public void RemoveListeners()
+        {
+            SpawnersControl.Instance.OnEnemyReachEnd -= OnEnemyReachedEnd;
         }
 
         private void OnEnemyReachedEnd(WaveState waveState, Enemy enemy)

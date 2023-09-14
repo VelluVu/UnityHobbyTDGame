@@ -58,14 +58,21 @@ namespace TheTD.Spawning
         {
             _allSpawners = GetSpawners();
             if (!_allSpawners.Any()) return;
-            _allSpawners.ForEach(o => AddSpawnListeners(o));
+            _allSpawners.ForEach(o => AddListeners(o));
         }
 
-        public void AddSpawnListeners(Spawner spawn)
+        public void AddListeners(Spawner spawn)
         {
             spawn.OnNewEnemyAdd += OnEnemyAdd;
             spawn.OnEnemyRemove += OnEnemyRemove;
             spawn.OnEnemyReachedEnd += OnEnemyReachedEnd;
+        }
+
+        public void RemoveListeners(Spawner spawn)
+        {
+            spawn.OnNewEnemyAdd -= OnEnemyAdd;
+            spawn.OnEnemyRemove -= OnEnemyRemove;
+            spawn.OnEnemyReachedEnd -= OnEnemyReachedEnd;
         }
 
         private void OnEnemyReachedEnd(Enemy enemy, int wave, Damage damage = null)
@@ -140,7 +147,7 @@ namespace TheTD.Spawning
             {
                 var spawn = transform.GetChild(i).GetComponent<Spawner>();
                 if (_allSpawners.Contains(spawn)) continue;
-                AddSpawnListeners(spawn);
+                AddListeners(spawn);
             }
             return false;
         }
@@ -169,9 +176,6 @@ namespace TheTD.Spawning
             }
             else
             {
-                //AmountOfEnemiesDestroyedInLevel -= waveState.AmountOfEnemiesDestroyedInWave;
-                //AmountOfEnemiesSpawnedInLevel -= waveState.AmountOfEnemiesSpawnedInWave;
-                //AmountOFEnemiesReachedEndInLevel -= waveState.AmountOFEnemiesReachedEnd;
                 var spawners = GetSpawnersInWave(wave);
                 spawners.ForEach(o => AmountOfSpawnsInLevel += o.GetSpawnsInWave(wave));
                 waveState.ResetWaveState();
@@ -199,6 +203,11 @@ namespace TheTD.Spawning
             int spawnsInLevel = 0;
             AllSpawners.ForEach(o => spawnsInLevel += o.TotalSpawns);
             return spawnsInLevel;
+        }
+
+        private void OnDestroy()
+        {
+            _allSpawners.ForEach(o => RemoveListeners(o));
         }
     }
 }

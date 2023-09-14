@@ -3,7 +3,7 @@ using UnityEngine;
 namespace TheTD.Players
 {
 
-    public class Player : MonoBehaviour
+    public class Player : MonoBehaviour, IEventListener
     {
         [SerializeField] private Gold _gold = null;
         public Gold Gold { get => _gold; }
@@ -31,7 +31,7 @@ namespace TheTD.Players
             OnInitialized?.Invoke(this);
         }
 
-        private void AddListeners()
+        public void AddListeners()
         {
             Gold.AddListeners();
             Life.AddListeners();
@@ -41,6 +41,18 @@ namespace TheTD.Players
             Life.OnHeal += OnHealLife;
             Gold.OnGain += onGainGold;
             Gold.OnSpend += onSpendGold;
+        }
+
+        public void RemoveListeners()
+        {
+            Gold.RemoveListeners();
+            Life.RemoveListeners();
+            Life.OnZero -= OnZeroLife;
+            Life.OnRemove -= OnLoseLife;
+            Life.OnMaxLife -= OnMaxLife;
+            Life.OnHeal -= OnHealLife;
+            Gold.OnGain -= onGainGold;
+            Gold.OnSpend -= onSpendGold;
         }
 
         private void onSpendGold(Gold gold)
@@ -71,6 +83,11 @@ namespace TheTD.Players
         private void OnZeroLife(Life life)
         {
             OnDeath?.Invoke(this);
+        }
+
+        private void OnDestroy()
+        {
+            RemoveListeners();
         }
     }
 }

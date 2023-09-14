@@ -110,12 +110,6 @@ namespace TheTD.Projectiles
         virtual public void ReadyForPool()
         {
             ResetScale();
-            //remove tower damage modifiers from the projectile damage
-            
-
-            //When closing the game, and this function is called after the destruction of the Original parent.
-            //it caused some nasty errors, as trying to set null object as parent.
-            //So the null check is needed here.
             if (OriginalParent != null) 
             {
                 transform.SetParent(OriginalParent);

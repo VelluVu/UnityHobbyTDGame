@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 5480529077241199202}
   - component: {fileID: 8322766298515649351}
   m_Layer: 11
-  m_Name: Collider
+  m_Name: ArrowTower_Collider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -88,7 +88,7 @@ GameObject:
   - component: {fileID: 293951241198870095}
   - component: {fileID: 4907618857911104426}
   m_Layer: 11
-  m_Name: Base_Mesh
+  m_Name: ArrowTower_BaseMesh
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -299,7 +299,7 @@ MonoBehaviour:
   _shootPoint: {fileID: 0}
   _maxShootForce: 10
   _forceRatio: 0.3
-  throwStrength: 0
+  launchStrength: 0
   _useMovementPrediction: 1
   historicalTime: 1
   historicalResolution: 10

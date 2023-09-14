@@ -14,7 +14,6 @@ namespace TheTD.ScriptableFiniteStateMachine
         {
             if (!fsm.PathControl.HasPath)
             {
-                //Debug.LogFormat(NO_PATH, fsm.gameObject.name);
                 return;
             }
 
@@ -39,41 +38,55 @@ namespace TheTD.ScriptableFiniteStateMachine
                 fsm.PathControl.currentNodeIndex = (fsm.PathControl.currentNodeIndex + 1) % fsm.PathControl.currentPath.Count;
                 fsm.PathControl.nextNode = fsm.PathControl.currentPath[fsm.PathControl.currentNodeIndex];
             }
-
+      
             fsm.IsTurning = RotateTowardsPoint(fsm.PathControl.nextNode, fsm.Rigidbody, fsm.MovementStats.TurnSpeed.Value);
-            MoveForward(fsm, fsm.Rigidbody);
+            Move(fsm, fsm.Rigidbody);
 
         }
 
-        public void MoveForward(FiniteStateMachine fsm, Rigidbody rigidBody)
+        public void Move(FiniteStateMachine fsm, Rigidbody rigidBody)
         {
-            if(fsm.IsTurning) return;
-            //rigidBody.MovePosition(rigidBody.position + rigidBody.transform.forward * fsm.MovementStats.MoveSpeed.Value * Time.deltaTime);
-            rigidBody.AddForce(rigidBody.transform.forward * fsm.MovementStats.MoveSpeed.Value * Time.deltaTime, ForceMode.VelocityChange);
-            //var velocity = rigidBody.transform.forward * fsm.MovementStats.MoveSpeed.Value;
-            //rigidBody.velocity = velocity;
+            //if (fsm.IsTurning) return;
+            if(!fsm.IsGrounded)
+            {
+                rigidBody.useGravity = true;
+                return;
+            }
+            
+            fsm.moveDirection = fsm.Rigidbody.transform.forward;
+            rigidBody.useGravity = !fsm.IsOnSlope;
+            Debug.DrawLine(fsm.transform.position, fsm.transform.position + fsm.moveDirection, Color.blue, 1f);
+            float speed = fsm.MovementStats.MoveSpeed.Value;
+            fsm.Velocity = fsm.moveDirection * speed;
+            
+            if(fsm.IsOnSlope)
+            {
+                fsm.Velocity = Vector3.ProjectOnPlane(fsm.Velocity, fsm.slopeHit.normal);
+                //velocity += Vector3.down * 0.1f;
+            }
+            
+            rigidBody.AddForce(fsm.Velocity, ForceMode.VelocityChange);
         }
+
+       
 
         public bool RotateTowardsPoint(Vector3 point, Rigidbody rigidbody, float turnSpeed)
         {
+            point = new Vector3(point.x, rigidbody.transform.position.y, point.z);
             var toPointDirection = (point - rigidbody.position).normalized;
-            //Debug.DrawLine(rigidbody.position, toPointDirection + rigidbody.position, Color.blue, 1f);
-            //Debug.DrawLine(rigidbody.position, rigidbody.transform.forward + rigidbody.position, Color.red, 1f);
 
-            if(IsCorrectDirection(rigidbody.transform.forward, toPointDirection)) return false; 
-        
+            if (IsCorrectDirection(rigidbody.transform.forward, toPointDirection)) return false;
+
             var angleDir = AngleDirection(rigidbody.transform.forward, toPointDirection, rigidbody.transform.up);
             var eulerangleVelocity = new Vector3(0f, turnSpeed * angleDir, 0f);
             var deltaRotation = Quaternion.Euler(eulerangleVelocity * Time.deltaTime);
             rigidbody.MoveRotation(rigidbody.rotation * deltaRotation);
             return true;
-            //rigidbody.transform.LookAt(point);
         }
 
         private bool IsCorrectDirection(Vector3 forward, Vector3 direction)
         {
             var dot = Vector3.Dot(forward, direction);
-            //Debug.Log(" " + dot + " , " + minValueForCorrectDirection);
             return dot > minValueForCorrectDirection;
         }
 
@@ -81,7 +94,7 @@ namespace TheTD.ScriptableFiniteStateMachine
         {
             Vector3 perpendicular = Vector3.Cross(forwardDirection, targetDirection);
             float dot = Vector3.Dot(perpendicular, up);
-            //Debug.Log(dot);
+
             if (dot > 0.0f)
             {
                 return 1.0f;

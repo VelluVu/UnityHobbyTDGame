@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace TheTD.UI
 {
-    public class SelectSpotVisual : MonoBehaviour
+    public class SelectSpotVisual : MonoBehaviour, IEventListener
     {
         private const string SELECTED_MATERIAL_PATH = "Materials/SelectedMaterial";
         private const string OCCUPIED_MATERIAL_PATH = "Materials/OccupiedMaterial";
@@ -21,6 +21,11 @@ namespace TheTD.UI
 
         private void Start()
         {
+            AddListeners();            
+        }
+
+        public void AddListeners()
+        {
             BuildArea.OnSelectedBuildSpotChange += OnSelectBuildSpot;
         }
 
@@ -34,16 +39,24 @@ namespace TheTD.UI
                 SetMaterial();
                 return;
             }
-            //Debug.Log(selectedBuildSpot.CenterPositionInWorld);
-            //Debug.Log("Is Selected Spot invalid? " + selectedBuildSpot.IsInvalidSpot);
-            //Debug.Log("Is Selected Spot Occupied? " + selectedBuildSpot.IsOccupied);
-            SetMaterial(selectedBuildSpot.IsInvalidSpot);
-            transform.position = new Vector3(selectedBuildSpot.CenterPositionInWorld.x, selectedBuildSpot.CenterPositionInWorld.y + transform.localPosition.y, selectedBuildSpot.CenterPositionInWorld.z);
+
+            SetMaterial(selectedBuildSpot.IsInvalidConstructionSpot);
+            transform.position = new Vector3(selectedBuildSpot.CenterPositionInWorld.x, selectedBuildSpot.CenterPositionInWorld.y + 0.1f, selectedBuildSpot.CenterPositionInWorld.z);
         }
 
         public void SetMaterial(bool isInvalid = false)
         {           
             Renderer.sharedMaterial = !isInvalid ? SelectedMaterial : OccupiedMaterial;
+        }
+
+        private void OnDestroy()
+        {
+            RemoveListeners();
+        }
+
+        public void RemoveListeners()
+        {
+            BuildArea.OnSelectedBuildSpotChange -= OnSelectBuildSpot;
         }
     }
 }

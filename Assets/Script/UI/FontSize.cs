@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace TheTD.UI
 {
-    public class FontSize : MonoBehaviour
+    public class FontSize : MonoBehaviour, IEventListener
     {
         private float originalFontSize = 0;
  
@@ -17,12 +17,12 @@ namespace TheTD.UI
             AddListeners();
         }
 
-        private void AddListeners()
+        public void AddListeners()
         {
             RTSCamera.OnCameraZoomChange += OnCameraZoomChange;
         }
 
-        private void RemoveListeners()
+        public void RemoveListeners()
         {        
             RTSCamera.OnCameraZoomChange -= OnCameraZoomChange;
         }

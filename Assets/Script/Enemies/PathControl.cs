@@ -3,9 +3,10 @@ using Pathfinding;
 using UnityEngine.Events;
 using TheTD.Building;
 using System.Collections.Generic;
+using Pathfinding.Util;
 
 [RequireComponent(typeof(Seeker))]
-public class PathControl : MonoBehaviour
+public class PathControl : MonoBehaviour, IEventListener
 {
     private const string END_POINT_TAG = "EndPoint";
     public bool IsNewPath = true;
@@ -15,7 +16,7 @@ public class PathControl : MonoBehaviour
     [SerializeField] public Vector3 nextNode;
 
     //public Vector3 NextNodePosition { get => (Vector3)nextNode.position; }
-    public bool HasPath { get; protected set; }
+    public bool HasPath { get => _interpolator.valid; }
 
     private Vector3 destinationYOffset = Vector3.zero;
     public Vector3 DestinationYOffset { set => destinationYOffset = value; }
@@ -29,28 +30,47 @@ public class PathControl : MonoBehaviour
     private Seeker _seeker;
     public Seeker Seeker { get => _seeker = _seeker != null ? _seeker : GetComponent<Seeker>(); }
 
+    protected PathInterpolator _interpolator = new PathInterpolator();
+
+    public void FindPath(Vector3 start, Vector3 destination) 
+    {
+        Seeker.StartPath(start, destination, OnPathComplete);
+    }
+
+    public void OnPathComplete (Path newPath) 
+    {    
+        if (newPath.error) 
+        {
+            Debug.Log(newPath.errorLog);
+            _interpolator.SetPath(null);      
+            OnPathFail?.Invoke();
+            return;
+        } 
+
+        currentPath = newPath.vectorPath;
+        _interpolator.SetPath(currentPath);
+        IsNewPath = true;
+        OnNewPath?.Invoke(currentPath);
+    }
+
     private void Start() 
     {
         AddListeners();
         FindPath(transform.position, Destination);
     }
 
-    private void AddListeners()
+    public void AddListeners()
     {
         BuildArea.OnBuild += OnBuildingPlaced;
         BuildArea.OnSell += OnBuildingRemoved;
     }
 
-    private void RemoveListeners()
+    public void RemoveListeners()
     {
         BuildArea.OnBuild -= OnBuildingPlaced;
         BuildArea.OnSell -= OnBuildingRemoved;
     }
 
-    private void OnDestroy() 
-    {
-        RemoveListeners();
-    }
 
     private void OnBuildingPlaced(Construction construction)
     {
@@ -62,25 +82,9 @@ public class PathControl : MonoBehaviour
         FindPath(transform.position, Destination);
     }
 
-    public void FindPath(Vector3 start, Vector3 destination) 
+
+    private void OnDestroy() 
     {
-        HasPath = false;
-        Seeker.StartPath(start, destination, OnPathComplete);
-    }
-
-    public void OnPathComplete (Path newPath) 
-    {  
-        if (newPath.error) 
-        {
-            Debug.Log(newPath.errorLog);
-            HasPath = false;
-            OnPathFail?.Invoke();
-            return;
-        } 
-
-        currentPath = newPath.vectorPath;
-        IsNewPath = true;
-        HasPath = true;
-        OnNewPath?.Invoke(currentPath);
+        RemoveListeners();
     }
 }

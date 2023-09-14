@@ -110,7 +110,6 @@ namespace TheTD.Towers
         {
             Vector3 turretForward = TurretRotator.transform.forward;     
             var dot = Vector3.Dot(turretForward, aimDirection);
-            //Debug.Log(dot);
             DrawDebugLineInLoop(ShootPoint.position, aimDirection + ShootPoint.position, Color.green);
             return dot >= _minimumLockOnEnemyDotProductRatio;
         }

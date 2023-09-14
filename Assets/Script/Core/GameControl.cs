@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace TheTD.Core
 {
-    public class GameControl : MonoBehaviour
+    public class GameControl : MonoBehaviour, IEventListener
     {
         public static GameControl Instance { get; private set; }
 
@@ -50,7 +50,7 @@ namespace TheTD.Core
         private void Start()
         {
             DamageCalculator = new DamageCalculator();
-            AddListers();
+            AddListeners();
             EnableBuilding = true;
         }
 
@@ -75,7 +75,7 @@ namespace TheTD.Core
             OnPlayerLose?.Invoke(CurrentSpawnWave);
         }
 
-        private void AddListers()
+        public void AddListeners()
         {
             SpawnersControl.Instance.OnWaveComplete += OnWaveComplete;
             SpawnersControl.Instance.OnLevelComplete += OnLevelComplete;
@@ -83,6 +83,16 @@ namespace TheTD.Core
             SpawnersControl.Instance.OnEnemyKilled += OnEnemyKilled;
             SpawnersControl.Instance.OnEnemySpawn += OnEnemySpawn;
             Player.OnDeath += OnPlayerDeath;
+        }
+
+        public void RemoveListeners()
+        {
+            SpawnersControl.Instance.OnWaveComplete -= OnWaveComplete;
+            SpawnersControl.Instance.OnLevelComplete -= OnLevelComplete;
+            SpawnersControl.Instance.OnEnemyReachEnd -= OnEnemyReachEnd;
+            SpawnersControl.Instance.OnEnemyKilled -= OnEnemyKilled;
+            SpawnersControl.Instance.OnEnemySpawn -= OnEnemySpawn;
+            Player.OnDeath -= OnPlayerDeath;
         }
 
         private void OnEnemySpawn(WaveState waveState, Enemy enemy)
@@ -119,6 +129,11 @@ namespace TheTD.Core
                 OnWaveAndEnemiesClear?.Invoke(CurrentSpawnWave);
             }
             CurrentSpawnWave = NextSpawnWave;
+        }
+
+        private void OnDestroy()
+        {
+            RemoveListeners();
         }     
     }
 }

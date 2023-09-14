@@ -6,9 +6,16 @@ using UnityEngine;
 
 namespace TheTD.Building
 {
-    public class BuildAreasControl : MonoBehaviour
+    public class BuildAreasControl : MonoBehaviour, IEventListener
     {
         public static BuildAreasControl Instance { get; private set; }
+        private const string PATH_TO_TEST_OBSTACLE = "Prefabs/Obstacles/TestPathObstacle";
+
+        private GameObject _testObstaclePrefab;
+        public GameObject TestObstaclePrefab { get => _testObstaclePrefab = _testObstaclePrefab != null ? _testObstaclePrefab : Resources.Load<GameObject>(PATH_TO_TEST_OBSTACLE); }
+
+        private GameObject _testObstacleGameObject;
+        public GameObject TestObstacleGameObject { get => _testObstacleGameObject = _testObstacleGameObject != null ? _testObstacleGameObject : Instantiate(TestObstaclePrefab); }
 
         private ConstructionHolder _buildingHolder;
         public ConstructionHolder BuildingHolder { get => _buildingHolder = _buildingHolder != null ? _buildingHolder : FindObjectOfType<ConstructionHolder>(); }
@@ -44,6 +51,12 @@ namespace TheTD.Building
         {
             BuildArea.OnBuildAreaClicked += OnBuildAreaClicked;
             BuildingPanel.OnBuildClick += OnBuildButtonClicked;
+        }
+        
+        public void RemoveListeners()
+        {
+            BuildArea.OnBuildAreaClicked -= OnBuildAreaClicked;
+            BuildingPanel.OnBuildClick -= OnBuildButtonClicked;
         }
 
         private void OnBuildButtonClicked(ITowerLoadData towerData)
@@ -87,6 +100,11 @@ namespace TheTD.Building
         private List<BuildArea> GetBuildAreas()
         {
             return GetComponentsInChildren<BuildArea>().ToList();
+        }
+
+        private void OnDestroy()
+        {
+            RemoveListeners();
         }
     }
 }

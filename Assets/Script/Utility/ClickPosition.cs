@@ -32,12 +32,12 @@ public class ClickPosition : MonoBehaviour
         {
             return hit.point;
         }
-        return -Vector3.zero;
+        return Vector3.negativeInfinity;
     }
 
     private static Vector3 GetClickPositionWithPlane()
     {
-        Vector3 clickPosition = -Vector3.one;
+        Vector3 clickPosition = Vector3.negativeInfinity;
 
         Plane plane = new Plane(Vector3.up, 0f);
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);

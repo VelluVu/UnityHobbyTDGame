@@ -7,7 +7,7 @@ namespace TheTD.Players
 {
 
     [System.Serializable]
-    public class Gold
+    public class Gold : IEventListener
     {
         public int lastValueChange = 0;
 
@@ -18,11 +18,18 @@ namespace TheTD.Players
         internal event GoldDelegate OnSpend;
         internal event GoldDelegate OnGain;
 
-        internal void AddListeners()
+        public void AddListeners()
         {
             SpawnersControl.Instance.OnEnemyKilled += OnEnemyKill;
             BuildArea.OnBuild += OnBuildTower;
             BuildArea.OnSell += OnSellTower;
+        }
+
+        public void RemoveListeners()
+        {
+            SpawnersControl.Instance.OnEnemyKilled -= OnEnemyKill;
+            BuildArea.OnBuild -= OnBuildTower;
+            BuildArea.OnSell -= OnSellTower;
         }
 
         private void OnSellTower(Construction building)

@@ -69,7 +69,7 @@ namespace TheTD.Enemies
 
         public delegate void EnemyDelegate(Enemy enemy);
         public static event EnemyDelegate OnReachEnd;
-        public static event EnemyDelegate OnPathBlocked;
+        //public static event EnemyDelegate OnPathBlocked;
 
         public delegate void EnemyDeathDelegate(Enemy enemy, Damage damage);
         public static event EnemyDeathDelegate OnDeath;
@@ -119,7 +119,9 @@ namespace TheTD.Enemies
         {
             if(obstacleLayer.Contains(other.gameObject.layer))
             {
-                Vector3 newPathStart = new Vector3(other.contacts[0].normal.x, 0f, other.contacts[0].normal.z) * 0.5f + transform.position;
+                Vector3 flatNormal = new Vector3(other.contacts[0].normal.x, 0f, other.contacts[0].normal.z);
+                
+                Vector3 newPathStart = flatNormal * 0.5f + transform.position;
                 FSM.PathControl.FindPath(newPathStart, FSM.PathControl.Destination);
             }
         }

@@ -10,7 +10,12 @@ namespace TheTD.UI
         public TextMeshProUGUI TextMesh { get => _textMesh = _textMesh != null ? _textMesh : GetComponentInChildren<TextMeshProUGUI>(); }
 
         private void Start()
-        {         
+        {
+            AddListeners();
+        }
+
+        public void AddListeners()
+        {
             Player.OnInitialized += OnPlayerInitialized;
             Player.OnTakeDamage += OnPlayerTakeDamage;
         }
@@ -28,6 +33,17 @@ namespace TheTD.UI
         private void UpdateTextMesh(string text)
         {
             TextMesh.SetText(text);
+        }
+
+        private void OnDestroy()
+        {
+            RemoveListeners();
+        }
+
+        public void RemoveListeners()
+        {
+            Player.OnInitialized -= OnPlayerInitialized;
+            Player.OnTakeDamage -= OnPlayerTakeDamage;
         }
     }
 }

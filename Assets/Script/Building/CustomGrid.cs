@@ -1,10 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using TheTD.Building;
 using UnityEngine;
 using UnityEngine.ProBuilder;
 
-public class CustomGrid : MonoBehaviour
+public class CustomGrid : MonoBehaviour, IEventListener
 {
     private const string BUILD_AREA_LAYER_NAME = "BuildArea";
     private const string BUILD_AREA_GRID_GAMEOBJECT_NAME = "Grid";
@@ -13,23 +14,31 @@ public class CustomGrid : MonoBehaviour
     private const string TILING_SHADER_PROPERTY_NAME = "_Tiling";
 
     [Header("Build Area Grid Variables")]
+
     [SerializeField] private Vector2Int cellsAmount = new Vector2Int(10, 10);
+    [SerializeField] private float yRotation = 0f;
     [SerializeField] private float offsetHeight = 0.1f;
     [SerializeField] private float cellSize = 1f;
     private float spacing = 0f; //need to make shader work with spacing, if want to allow spacing
 
-    [SerializeField]private List<Vector2IntBuildSpotPair> buildSpotsSerializable = new List<Vector2IntBuildSpotPair>();
-    public Dictionary<Vector2Int, BuildSpot> buildSpots = new Dictionary<Vector2Int,BuildSpot>();
-    
-    public Vector2Int GridBottomLeftPositionInWorldGridCoordinates { get => ConvertWorldPosToGridPosition(transform.position); }
-    public Vector2Int GridTopRightPositionInWorldGridCoordinates { get => new Vector2Int(GridBottomLeftPositionInWorldGridCoordinates.x + cellsAmount.x - 1, GridBottomLeftPositionInWorldGridCoordinates.y + cellsAmount.y - 1); }
-    public Vector3 BottomLeftPositionInWorld { get => transform.position; }
-    public Vector3 TopRightPositionInWorld { get => new Vector3(BottomLeftPositionInWorld.x + cellsAmount.x * cellSize, BottomLeftPositionInWorld.y, BottomLeftPositionInWorld.z + cellsAmount.y * cellSize); }
+    [SerializeField] private List<Vector2IntBuildSpotPair> buildSpotsSerializable = new List<Vector2IntBuildSpotPair>();
+    public Dictionary<Vector2Int, BuildSpot> buildSpots = new Dictionary<Vector2Int, BuildSpot>();
+
+    public Vector2Int GridBottomLeftPositionInWorldGridCoordinates { get => ConvertWorldPosToGridPosition(BottomLeftPositionInWorld); }
+    public Vector2Int GridTopRightPositionInWorldGridCoordinates { get => ConvertWorldPosToGridPosition(TopRightPositionInWorld); }
+    public Vector3 BottomLeftPositionInWorld { get => GetBottomLeftPositionInWorld(); }
+    public Vector3 TopRightPositionInWorld { get => GetTopRightPositionInWorld(); }
+    public Vector3 TopLeftPositiontInWorld { get => GetTopLeftPositionInWorld(); }
+    public Vector3 BottomRightPositionInWorld { get => GetBottomRightPositionInWorld(); }
+
     public Vector2 Size { get => new Vector2(cellsAmount.x * cellSize + cellsAmount.x * spacing, cellsAmount.y * cellSize + cellsAmount.y * spacing); }
     public Vector3 Center { get => new Vector3(Size.x * 0.5f, transform.position.y, Size.y * 0.5f); }
 
     [SerializeField] private bool _isVisible = true;
     public bool IsVisible { get => _isVisible; set => SetIsVisible(value); }
+
+    private BoxCollider _collider;
+    public BoxCollider Collider { get => _collider; }
 
     private Renderer _renderer;
     public Renderer Renderer { get => _renderer = _renderer != null ? _renderer : Mesh.GetComponent<Renderer>(); }
@@ -59,51 +68,43 @@ public class CustomGrid : MonoBehaviour
 
     public bool IsPositionInsideGridBounds(Vector3 position)
     {
-        Vector3 startPosition = transform.position;
-        var topRightBuildSpot = buildSpots[cellsAmount - Vector2Int.one];
-        Vector3 endPosition = topRightBuildSpot.TopRightCornerPositionInWorld;
+        Debug.Log("Checking if position: " + position + " is inside grid bounds");
+        Vector3 startPosition = BottomLeftPositionInWorld;
+        Debug.Log("Start Position " + startPosition);
+        Vector3 endPosition = TopRightPositionInWorld;
+        Debug.Log("End Position: " + endPosition);
         var isInBounds = (position.x >= startPosition.x) && (position.z <= endPosition.z) && (position.x <= endPosition.x) && (position.z >= startPosition.z) && (position.y >= startPosition.y);
+        Debug.Log("Is inside grid: " + isInBounds);
         return isInBounds;
     }
 
     public Vector2Int ConvertWorldPosToGridPosition(Vector3 worldPosition)
     {
-        Vector3 localPosition = worldPosition - BottomLeftPositionInWorld;
-        int gridPositionX = Mathf.FloorToInt(localPosition.x);
-        int gridPositionY = Mathf.FloorToInt(localPosition.z);
+        // First remove the origin offset from the position
+        Vector3 position = worldPosition - transform.position;
+ 
+        // Remove the rotation
+        position = Quaternion.Inverse(transform.rotation) * position;
+        int gridPositionX = Mathf.FloorToInt(position.x / cellSize);
+        int gridPositionY = Mathf.FloorToInt(position.z / cellSize);
         var gridPosition = new Vector2Int(gridPositionX, gridPositionY);
-        
-        //Debug.Log("World position: " + worldPosition + " converted to grid position: " + gridPosition);
-        
-        //if(gridPosition.x < 0 || gridPosition.y < 0 || gridPosition.x > cellsAmount.x - 1 || gridPosition.y > cellsAmount.y - 1)
-        //{
-        //    Debug.Log("World position: " + worldPosition + " in grid position: " + gridPosition + " is not in grid");
-        //}
 
         return gridPosition;
     }
 
     public BuildSpot FindBuildSpotInWorldPosition(Vector3 position)
-    {
-        return buildSpots.Values.ToList().Find(o => o.IsPositionInBounds(position));  
+    {   
+        return FindClosestBuildSpot(position);
     }
 
     public BuildSpot FindClosestBuildSpot(Vector3 position)
     {
         var positionInGrid = ConvertWorldPosToGridPosition(position);
-        var closestGridPosition = SnapToClosestGridPosition(positionInGrid);    
+        Debug.Log("Position in grid: " + positionInGrid);
+        var closestGridPosition = SnapToClosestGridPosition(positionInGrid);
+        Debug.Log("Closest Grid Position: "+ closestGridPosition);
         var closestspot = buildSpots[closestGridPosition];
-        //= buildSpots.Values.FirstOrDefault();
-
-        //foreach (var spot in buildSpots.Values)
-        //{
-        //    if (spot == closestspot) continue;
-        //    var distanceToCurrentSpot = Vector3.Distance(position, spot.CenterPositionInWorld);
-        //    var distanceToClosestSpot = Vector3.Distance(position, closestspot.CenterPositionInWorld);
-        //    if (distanceToCurrentSpot > distanceToClosestSpot) continue;
-        //    closestspot = spot;
-        //}
-        //Debug.Log("FOUND CLOSEST SPOT POSITION IN GRID: " + closestspot.GridPosition);
+        Debug.Log("Closests Spot:" + closestspot.GridPosition);
         return closestspot;
     }
 
@@ -111,7 +112,6 @@ public class CustomGrid : MonoBehaviour
     {
         var side = SideOfGridPositionComparedToGridInWorldGridPosition(gridPosition);
         var closestGridPosition = gridPosition;
-
         if (side == Vector2Int.right) closestGridPosition = new Vector2Int(cellsAmount.x - 1, gridPosition.y);
         else if (side == Vector2Int.left) closestGridPosition = new Vector2Int(0, gridPosition.y);
         else if (side == Vector2Int.up) closestGridPosition = new Vector2Int(gridPosition.x, cellsAmount.y - 1);
@@ -120,8 +120,6 @@ public class CustomGrid : MonoBehaviour
         else if (side.x == -1 && side.y == 1) closestGridPosition = new Vector2Int(0, cellsAmount.y - 1);
         else if (side.x == 1 && side.y == -1) closestGridPosition = new Vector2Int(cellsAmount.x - 1, 0);
         else if (side == -Vector2Int.one) closestGridPosition = Vector2Int.zero;
-
-        //Debug.Log("Grid Position: " + gridPosition + " is snapped to closest grid position: " + closestGridPosition);
         return closestGridPosition;
     }
 
@@ -130,17 +128,14 @@ public class CustomGrid : MonoBehaviour
         var minGridPosition = GridBottomLeftPositionInWorldGridCoordinates;
         var maxGridPosition = GridTopRightPositionInWorldGridCoordinates;
         var side = Vector2Int.zero;
-
         if (gridPosition.x > minGridPosition.x && gridPosition.y <= maxGridPosition.y && gridPosition.y >= minGridPosition.y) side = Vector2Int.right;
-        else if (gridPosition.x < minGridPosition.x && gridPosition.y <= maxGridPosition.y && gridPosition.y >= minGridPosition.y) side = Vector2Int.left;       
-        else if (gridPosition.y > maxGridPosition.y && gridPosition.x <= maxGridPosition.x && gridPosition.x >= minGridPosition.x) side = Vector2Int.up;     
-        else if (gridPosition.y < minGridPosition.y && gridPosition.x <= maxGridPosition.x && gridPosition.x >= minGridPosition.x) side = Vector2Int.down;      
+        else if (gridPosition.x < minGridPosition.x && gridPosition.y <= maxGridPosition.y && gridPosition.y >= minGridPosition.y) side = Vector2Int.left;
+        else if (gridPosition.y > maxGridPosition.y && gridPosition.x <= maxGridPosition.x && gridPosition.x >= minGridPosition.x) side = Vector2Int.up;
+        else if (gridPosition.y < minGridPosition.y && gridPosition.x <= maxGridPosition.x && gridPosition.x >= minGridPosition.x) side = Vector2Int.down;
         else if (gridPosition.x < minGridPosition.x && gridPosition.y < minGridPosition.y) side = -Vector2Int.one;
         else if (gridPosition.x < minGridPosition.x && gridPosition.y > maxGridPosition.y) side = new Vector2Int(-1, 1);
         else if (gridPosition.x > maxGridPosition.x && gridPosition.y > maxGridPosition.y) side = Vector2Int.one;
         else if (gridPosition.x > maxGridPosition.x && gridPosition.y < minGridPosition.y) side = new Vector2Int(1, -1);
-
-        //Debug.Log("Grid position: " + gridPosition + " side offset from grid is: " + side);
         return side;
     }
 
@@ -149,12 +144,12 @@ public class CustomGrid : MonoBehaviour
         var bottomLeftPositionInWorld = BottomLeftPositionInWorld;
         var topRightPostitionInWorld = TopRightPositionInWorld;
 
-        if (position.x > topRightPostitionInWorld.x && position.z < topRightPostitionInWorld.z && position.z > bottomLeftPositionInWorld.z) return Vector2Int.right;      
+        if (position.x > topRightPostitionInWorld.x && position.z < topRightPostitionInWorld.z && position.z > bottomLeftPositionInWorld.z) return Vector2Int.right;
         else if (position.x < bottomLeftPositionInWorld.x && position.z < topRightPostitionInWorld.z && position.z > bottomLeftPositionInWorld.z) return Vector2Int.left;
         else if (position.x > bottomLeftPositionInWorld.x && position.z < bottomLeftPositionInWorld.z && position.x < topRightPostitionInWorld.x) return Vector2Int.down;
         else if (position.x < topRightPostitionInWorld.x && position.x > bottomLeftPositionInWorld.x && position.z > topRightPostitionInWorld.z) return Vector2Int.up;
-        else if (position.x < bottomLeftPositionInWorld.x && position.z < bottomLeftPositionInWorld.z)  return -Vector2Int.one;        
-        else if (position.x < bottomLeftPositionInWorld.x && position.z > topRightPostitionInWorld.z) return new Vector2Int(-1, 1);     
+        else if (position.x < bottomLeftPositionInWorld.x && position.z < bottomLeftPositionInWorld.z) return -Vector2Int.one;
+        else if (position.x < bottomLeftPositionInWorld.x && position.z > topRightPostitionInWorld.z) return new Vector2Int(-1, 1);
         else if (position.x > bottomLeftPositionInWorld.x && position.z < bottomLeftPositionInWorld.z) return new Vector2Int(1, -1);
         else if (position.x > topRightPostitionInWorld.x && position.z > topRightPostitionInWorld.z) return Vector2Int.one;
         else return Vector2Int.zero;
@@ -162,7 +157,7 @@ public class CustomGrid : MonoBehaviour
 
     public void Create()
     {
-        DestroyMesh(); //Destroys the old grid, TODO: Update vertexes of old ProBuilderMesh.
+        DestroyMesh();
         buildSpotsSerializable.Clear();
         buildSpots.Clear();
         for (int x = 0; x < cellsAmount.x; x++)
@@ -172,10 +167,26 @@ public class CustomGrid : MonoBehaviour
                 CreateBuildSpot(x, z);
             }
         }
-#if !UNITY_EDITOR
         InitNeighBoursForBuildSpots();
-#endif
         SetupProBuilderPlaneMesh();
+
+        //transform.rotation = Quaternion.Euler(transform.rotation.x, yRotation, transform.rotation.z);
+    }
+
+    private void CreateBuildSpot(int x, int z)
+    {
+        var gridPosition = new Vector2Int(x, z);
+        float xPos = x * cellSize;
+        float zPos = z * cellSize;
+        xPos = xPos == 0f ? xPos : xPos + x * spacing;
+        zPos = zPos == 0f ? zPos : zPos + z * spacing;
+        var localPosition = transform.rotation * new Vector3(xPos, 0f, zPos);
+        var worldPosition = localPosition + transform.position;
+        BuildSpot spot = new BuildSpot(gridPosition, localPosition, worldPosition, false, cellSize);
+#if !UNITY_EDITOR
+        buildSpots.Add(gridPosition,spot);
+#endif
+        buildSpotsSerializable.Add(new Vector2IntBuildSpotPair(gridPosition, spot));
     }
 
     private void InitNeighBoursForBuildSpots()
@@ -187,12 +198,12 @@ public class CustomGrid : MonoBehaviour
             var buildSpot = spots[i];
             var neighbourDictionary = new Dictionary<Vector2Int, BuildSpot>();
 
-            if (buildSpot.GridPosition.x < cellsAmount.x -1)
+            if (buildSpot.GridPosition.x < cellsAmount.x - 1)
             {
                 var rightSpot = buildSpots[buildSpot.GridPosition + Vector2Int.right];
                 neighbourDictionary.Add(rightSpot.GridPosition, rightSpot);
 
-                if (buildSpot.GridPosition.y < cellsAmount.y -1)
+                if (buildSpot.GridPosition.y < cellsAmount.y - 1)
                 {
                     var topRightSpot = buildSpots[buildSpot.GridPosition + Vector2Int.one];
                     neighbourDictionary.Add(topRightSpot.GridPosition, topRightSpot);
@@ -215,12 +226,14 @@ public class CustomGrid : MonoBehaviour
             {
                 var leftSpot = buildSpots[buildSpot.GridPosition + Vector2Int.left];
                 neighbourDictionary.Add(leftSpot.GridPosition, leftSpot);
+
                 if (buildSpot.GridPosition.y > 0)
                 {
-                    var downLeftSpot = buildSpots[buildSpot.GridPosition + -Vector2Int.one];
+                    var downLeftSpot = buildSpots[buildSpot.GridPosition - Vector2Int.one];
                     neighbourDictionary.Add(downLeftSpot.GridPosition, downLeftSpot);
                 }
             }
+
             if (buildSpot.GridPosition.y > 0)
             {
                 var downSpot = buildSpots[buildSpot.GridPosition + Vector2Int.down];
@@ -244,26 +257,11 @@ public class CustomGrid : MonoBehaviour
         DestroyImmediate(Mesh.gameObject);
     }
 
-    private void CreateBuildSpot(int x, int z)
-    {
-        float xPos = x == 0 ? x * cellSize : x * cellSize + x * spacing;
-        float zPos = z == 0 ? z * cellSize : z * cellSize + z * spacing;
-        var gridPosition = new Vector2Int(x, z);
-        var localPosition = new Vector3(xPos, 0f, zPos);
-        var worldPosition = localPosition + transform.position;
-        BuildSpot spot = new BuildSpot(gridPosition, localPosition, worldPosition, false, cellSize);
-#if !UNITY_EDITOR
-        buildSpots.Add(gridPosition,spot);
-#endif
-        buildSpotsSerializable.Add(new Vector2IntBuildSpotPair(gridPosition, spot));
-
-    }
-
     public void SetupProBuilderPlaneMesh()
     {
-        //TODO: if there is a mesh, update the old mesh.
         Mesh.gameObject.name = BUILD_AREA_GRID_GAMEOBJECT_NAME;
         Mesh.transform.SetParent(transform);
+        Mesh.transform.rotation = transform.rotation;
         Mesh.transform.position = transform.position + Vector3.up * offsetHeight;
         Mesh.gameObject.layer = LayerMask.NameToLayer(BUILD_AREA_LAYER_NAME);
         SetupMeshRenderer();
@@ -279,10 +277,10 @@ public class CustomGrid : MonoBehaviour
 
     private void CreateCollider()
     {
-        var collider = Mesh.GetComponent<BoxCollider>();
-        collider = collider != null ? collider : Mesh.gameObject.AddComponent<BoxCollider>();
-        collider.isTrigger = true;
-        collider.center = new Vector3(Center.x, -offsetHeight, Center.z);
+        _collider = Mesh.gameObject.GetComponent<BoxCollider>();
+        _collider = _collider != null ? _collider : Mesh.gameObject.AddComponent<BoxCollider>();
+        _collider.isTrigger = true;
+        _collider.center = new Vector3(Center.x, -offsetHeight, Center.z);
     }
 
     private void SetIsVisible(bool value)
@@ -326,7 +324,7 @@ public class CustomGrid : MonoBehaviour
         {
             Debug.LogFormat(OBSTACLE_ON_GRID);
             var buildSpotsInArea = FindBuildSpotsBetweenPositions(bounds);
-            buildSpotsInArea.ForEach(o => o.IsOccupied = true);
+            buildSpotsInArea.ForEach(o => o.HasConstruction = true);
         }
     }
 
@@ -334,7 +332,48 @@ public class CustomGrid : MonoBehaviour
     {
         if (_mesh != null) return _mesh;
         if (GetComponentInChildren<ProBuilderMesh>() != null) return GetComponentInChildren<ProBuilderMesh>();
-        return ShapeGenerator.GeneratePlane(PivotLocation.FirstCorner, Size.x, Size.y, cellsAmount.x, cellsAmount.y, Axis.Up);
+        return ShapeGenerator.GeneratePlane(PivotLocation.FirstCorner, Size.y, Size.x, cellsAmount.y, cellsAmount.x, Axis.Up);
+    }
+
+    private Vector3 GetBottomLeftPositionInWorld()
+    {
+        return transform.position;
+    }
+
+    private Vector3 GetTopRightPositionInWorld()
+    {
+        var topLeftInOrigin = BottomLeftPositionInWorld + new Vector3(Size.x, 0f, Size.y) - transform.position;
+        topLeftInOrigin = transform.rotation * topLeftInOrigin;
+        return topLeftInOrigin + transform.position;
+    }
+
+    private Vector3 GetTopLeftPositionInWorld()
+    {
+        return new Vector3(TopRightPositionInWorld.z, BottomLeftPositionInWorld.y, BottomLeftPositionInWorld.z);
+    }
+    
+    private Vector3 GetBottomRightPositionInWorld()
+    {
+
+        return new Vector3(TopRightPositionInWorld.x, BottomLeftPositionInWorld.y, BottomLeftPositionInWorld.x);
+    }
+
+    public void RemoveListeners()
+    {
+        Obstacle.OnPositionChange -= OnObstaclePositionChange;
+    }
+
+    private void OnDestroy()
+    {
+        RemoveListeners();
+    }
+
+    private void OnDrawGizmos() {
+        Gizmos.color = Color.blue;
+        Gizmos.DrawWireSphere(BottomLeftPositionInWorld, 1f);
+        Gizmos.DrawWireSphere(TopRightPositionInWorld, 1f);
+        Gizmos.DrawWireSphere(TopLeftPositiontInWorld, 1f);
+        Gizmos.DrawWireSphere(BottomRightPositionInWorld, 1f);
     }
 }
 

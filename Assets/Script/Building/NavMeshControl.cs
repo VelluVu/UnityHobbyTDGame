@@ -6,7 +6,7 @@ namespace TheTD.Building
     /// <summary>
     /// THIS IS OLD, USING A* PROJECT PRO INSTEAD OF UNITY NAVMESH
     /// </summary>
-    public class NavMeshControl : MonoBehaviour
+    public class NavMeshControl : MonoBehaviour, IEventListener
     {
         public static NavMeshControl Instance { get; private set; }
 
@@ -41,6 +41,12 @@ namespace TheTD.Building
             BuildArea.OnBuildingRemove += OnBuildingRemove;
         }
 
+        public void RebuildNavMesh()
+        {
+            NavMeshSurface.BuildNavMesh();
+            OnNavMeshRebuild?.Invoke(NavMeshSurface);
+        }
+
         private void OnObstacleAdd(Obstacle obstacle)
         {
             RebuildNavMesh();
@@ -60,11 +66,18 @@ namespace TheTD.Building
         {
             RebuildNavMesh();
         }
-
-        public void RebuildNavMesh()
+        
+        public void RemoveListeners()
         {
-            NavMeshSurface.BuildNavMesh();
-            OnNavMeshRebuild?.Invoke(NavMeshSurface);
+            WorldObstacleControl.OnObstacleRemove -= OnObstacleRemove;
+            WorldObstacleControl.OnObstacleAdd -= OnObstacleAdd;
+            BuildArea.OnBuild -= OnBuild;
+            BuildArea.OnBuildingRemove -= OnBuildingRemove;
+        }
+
+        private void OnDestroy()
+        {
+            RemoveListeners();
         }
     }
 }

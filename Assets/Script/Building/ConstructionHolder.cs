@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace TheTD.Building
 {
-    public class ConstructionHolder : MonoBehaviour
+    public class ConstructionHolder : MonoBehaviour, IEventListener
     {
         public static ConstructionHolder Instance;
 
@@ -25,9 +25,24 @@ namespace TheTD.Building
             }
         }
 
-        private void Start()
+        public List<Construction> GetConstructions()
+        {
+            return transform.GetComponentsInChildren<Construction>().ToList();
+        }
+
+        public void AddListeners()
         {
             BuildArea.OnBuild += OnBuildingBuild;
+        }
+
+        public void RemoveListeners()
+        {
+            BuildArea.OnBuild -= OnBuildingBuild;
+        }
+
+        private void Start()
+        {
+            AddListeners();    
         }
 
         private void OnBuildingBuild(Construction building)
@@ -35,9 +50,9 @@ namespace TheTD.Building
             building.transform.SetParent(transform);
         }
 
-        public List<Construction> GetConstructions()
+        private void OnDestroy()
         {
-            return transform.GetComponentsInChildren<Construction>().ToList();
+            RemoveListeners();
         }
     }
 }
